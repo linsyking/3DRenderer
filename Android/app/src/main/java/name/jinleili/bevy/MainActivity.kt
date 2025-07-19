@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import name.jinleili.bevy.ui.theme.MyApplicationTheme
 import name.jinleili.bevy.R
-import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
 

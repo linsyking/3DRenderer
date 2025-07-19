@@ -50,13 +50,14 @@ android {
     compose = true
   }
 
-  ndkVersion = "29.0.13599879"
   externalNativeBuild {
     cmake {
       path = file("src/main/cpp/CMakeLists.txt")
-      version = "3.22.1"
+      version = "4.0.2"
     }
   }
+  buildToolsVersion = "36.0.0"
+  ndkVersion = "29.0.13599879 rc2"
 }
 
 dependencies {
