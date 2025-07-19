@@ -1,0 +1,43 @@
+[package]
+name = "bevy-in-app"
+version = "0.4.0"
+authors = ["jinleili"]
+edition = "2024"
+rust-version = "1.85"
+
+[workspace.metadata.rustflags]
+# 禁用 unexpected_cfgs 检查，解决 objc crate 的警告
+RUSTFLAGS = "--cfg=unexpected_cfgs"
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[features]
+default = ["bevy_debug_stepping"]
+bevy_debug_stepping = ["bevy/bevy_debug_stepping"]
+
+[dependencies]
+libc = "*"
+raw-window-handle = "0.6"
+wgpu = "24"
+bevy = { version = "0.16", default-features = true }
+bevy_platform = { version = "0.16.0" }
+bevy_tasks = { version = "0.16.0" }
+uuid = { version = "1.13", features = ["v4"] }
+log = "0.4"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+core-graphics = "*"
+objc = "0.2"
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.13"
+jni = "0.21"
+jni_fn = "0.1"
+ndk-sys = "0.6.0"
+ndk = "0.9.0"
+ndk-context = "*"
+log-panics = "*"
+
+[profile.dev]
+opt-level = 1 # 1 for minimal optimization and good debugging.
