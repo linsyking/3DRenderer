@@ -11,10 +11,25 @@ This project implements a performant 3D rendering and sketching tool on Android 
 ### Prerequisites
 
 - Android Studio (Giraffe or newer recommended)
-- Android SDK version: 33+
-- Kotlin version: 1.9+
-- Gradle version: 8.0+
-- Minimum API level: 26
+- Rust 2024 Edition
+- Android Rust Development Dependencies (see below)
+
+### Set up Android environment
+
+Assuming your computer already has Android Studio installed, go to `Android Studio` > `Tools` > `SDK Manager` > `Android SDK` > `SDK Tools`. Check the following options for installation and click OK.
+
+- [x] Android SDK Build-Tools 36.0.0
+- [x] Android SDK Command-line Tools
+- [x] NDK(Side by side) v29.0.13599879
+
+Run:
+
+```sh
+# Setup the android target for rust.
+rustup target add aarch64-linux-android
+# Install cargo-so subcommand for the first time build
+cargo install cargo-so
+```
 
 ### How to Build and Run
 
@@ -25,12 +40,19 @@ This project implements a performant 3D rendering and sketching tool on Android 
    cd 441Renderer
    ```
 
-2. **Open in Android Studio**\
+2. **Build Rust Library**
+
+   ```bash
+   ./android_build.sh --release
+   ```
+   
+2. **Open in Android Studio**
+
    Open the folder in Android Studio and allow Gradle to sync.
 
 3. **Run the App**
 
-   - Select a physical Android device or emulator.
+   - Select a physical Android device.
    - Click "Run" (▶️) in Android Studio.
 
 ### Third-Party Tools and Libraries
@@ -41,18 +63,8 @@ The project directly uses the following open-source libraries:
 
 - [**Jetpack Compose**](https://developer.android.com/jetpack/compose)\
   For modern, declarative UI development.
-
-- [**OpenGL ES / GLES20**](https://developer.android.com/guide/topics/graphics/opengl)\
-  For low-level 3D rendering operations.
-
-- [**AndroidX Core + Lifecycle**](https://developer.android.com/jetpack/androidx/releases/lifecycle)\
-  Lifecycle-aware components for rendering lifecycle management.
-
-- [**Skiko (JetBrains Skia Bindings)**](https://github.com/JetBrains/skiko)\
-  For GPU-accelerated 2D/3D graphics via Skia.
-
-- [**Kotlinx Serialization**](https://github.com/Kotlin/kotlinx.serialization)\
-  To export/import 2D sketches and 3D model metadata.
+- wgpu
+- bevy
 
 ### Notes
 
