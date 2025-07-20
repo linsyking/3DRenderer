@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.hardware.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
@@ -11,7 +12,6 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var rustBrige = RustBridge()
     private var bevy_app: Long = Long.MAX_VALUE
     private var ndk_inited = false
-    private var idx: Int = 0
     private var sensorManager: SensorManager? = null
     private var mSensor: Sensor? = null
     private var sensorValues: FloatArray = FloatArray(3)
@@ -98,9 +98,4 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
         invalidate()
     }
 
-    fun changeExample(index: Int) {
-        if (bevy_app != Long.MAX_VALUE && this.idx != index) {
-            this.idx = index
-        }
-    }
 }
