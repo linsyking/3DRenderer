@@ -6,12 +6,12 @@ plugins {
 
 android {
   namespace = "name.jinleili.bevy"
-  compileSdk = 36
+  compileSdk = 35
 
   defaultConfig {
     applicationId = "name.jinleili.bevy"
     minSdk = 30
-    targetSdk = 36
+    targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 
@@ -56,7 +56,6 @@ android {
       version = "4.0.2"
     }
   }
-  buildToolsVersion = "36.0.0"
   ndkVersion = "29.0.13599879 rc2"
 }
 
