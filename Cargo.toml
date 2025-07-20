@@ -1,12 +1,10 @@
 [package]
 name = "bevy-in-app"
 version = "0.4.0"
-authors = ["jinleili"]
 edition = "2024"
 rust-version = "1.85"
 
 [workspace.metadata.rustflags]
-# 禁用 unexpected_cfgs 检查，解决 objc crate 的警告
 RUSTFLAGS = "--cfg=unexpected_cfgs"
 
 [lib]

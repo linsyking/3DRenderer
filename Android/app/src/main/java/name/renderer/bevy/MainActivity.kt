@@ -1,4 +1,4 @@
-package name.jinleili.bevy
+package name.renderer.bevy
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,8 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import name.jinleili.bevy.ui.theme.MyApplicationTheme
-import name.jinleili.bevy.R
+import name.renderer.bevy.ui.theme.MyApplicationTheme
+import name.renderer.bevy.R
 
 class MainActivity : ComponentActivity() {
 

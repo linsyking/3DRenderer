@@ -1,4 +1,4 @@
-package name.jinleili.bevy
+package name.renderer.bevy
 
 import android.view.Surface
 import android.content.Context

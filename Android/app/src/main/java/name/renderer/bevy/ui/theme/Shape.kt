@@ -1,4 +1,4 @@
-package name.jinleili.bevy.ui.theme
+package name.renderer.bevy.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes

@@ -1,4 +1,4 @@
-package name.jinleili.bevy.ui.theme
+package name.renderer.bevy.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

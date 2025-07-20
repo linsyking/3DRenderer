@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-  namespace = "name.jinleili.bevy"
+  namespace = "name.renderer.bevy"
   compileSdk = 35
 
   defaultConfig {
-    applicationId = "name.jinleili.bevy"
+    applicationId = "name.renderer.bevy"
     minSdk = 30
     targetSdk = 35
     versionCode = 1

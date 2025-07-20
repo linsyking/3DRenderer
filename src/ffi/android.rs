@@ -15,13 +15,10 @@ unsafe extern "C" {}
 pub fn android_main(_android_app: bevy::window::android_activity::AndroidApp) {
     // This maybe a bevy issue
     // `android_main` empty function is currently required, otherwise, a panic will occur:
-    //
-    // java.lang.UnsatisfiedLinkError: dlopen failed: cannot locate symbol "android_main"
-    // referenced by "/data/app/~~hebB-d3x4YdYjuFlqiJT3w==/name.jinleili.bevy.debug-j2uCKW7h8U7-_YzEOO48Dg==/base.apk!/lib/arm64-v8a/libbevy_in_app.so"...
 }
 
 #[unsafe(no_mangle)]
-#[jni_fn("name.jinleili.bevy.RustBridge")]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn init_ndk_context(env: JNIEnv, _: jobject, context: jobject) {
     log_panics::init();
     android_logger::init_once(Config::default().with_max_level(LevelFilter::Info));
@@ -32,7 +29,7 @@ pub fn init_ndk_context(env: JNIEnv, _: jobject, context: jobject) {
 }
 
 #[unsafe(no_mangle)]
-#[jni_fn("name.jinleili.bevy.RustBridge")]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn create_bevy_app(
     env: *mut JNIEnv,
     _: jobject,
@@ -55,14 +52,14 @@ pub fn create_bevy_app(
 }
 
 #[unsafe(no_mangle)]
-#[jni_fn("name.jinleili.bevy.RustBridge")]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn enter_frame(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     let bevy_app = unsafe { &mut *(obj as *mut App) };
     bevy_app.update();
 }
 
 #[unsafe(no_mangle)]
-#[jni_fn("name.jinleili.bevy.RustBridge")]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: jfloat, _z: jfloat) {
     let app = unsafe { &mut *(obj as *mut App) };
     let x: f32 = x as _;
@@ -79,7 +76,7 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
 }
 
 #[unsafe(no_mangle)]
-#[jni_fn("name.jinleili.bevy.RustBridge")]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn release_bevy_app(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     let app: Box<App> = unsafe { Box::from_raw(obj as *mut _) };
     crate::close_bevy_window(app);
