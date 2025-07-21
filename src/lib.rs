@@ -25,6 +25,7 @@ mod android_asset_io;
 mod breakout_game;
 mod lighting_demo;
 mod shapes_demo;
+mod scene3d;
 mod stepping;
 
 #[allow(unused_variables)]
@@ -78,14 +79,15 @@ pub fn create_breakout_app(
             .add_before::<bevy::asset::AssetPlugin>(android_asset_io::AndroidAssetIoPlugin);
     }
     bevy_app
-        .insert_resource(ClearColor(Color::srgb(0.8, 0.4, 0.6)))
+        .insert_resource(ClearColor(Color::srgb(1.0, 1.0, 1.0)))
         .add_plugins(default_plugins);
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     bevy_app.add_plugins(app_view::AppViewPlugin);
 
-    bevy_app.add_plugins(breakout_game::BreakoutGamePlugin);
+    // bevy_app.add_plugins(breakout_game::BreakoutGamePlugin);
     // bevy_app.add_plugins(lighting_demo::LightingDemoPlugin);
+    bevy_app.add_plugins(scene3d::Scene3DPlugin);
     // bevy_app.add_plugins(shapes_demo::ShapesDemoPlugin);
 
     // In this scenario, need to call the setup() of the plugins that have been registered

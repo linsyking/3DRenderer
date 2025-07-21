@@ -87,7 +87,6 @@ fn initialized(state: Res<State>) -> bool {
 }
 
 const FONT_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
-const FONT_BOLD: &str = "fonts/FiraMono-Medium.ttf";
 
 #[derive(Component)]
 struct SteppingUi;
@@ -99,7 +98,6 @@ struct SteppingUi;
 /// one of the stepping schedules has not yet been run.
 fn build_ui(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     schedules: Res<Schedules>,
     mut stepping: ResMut<Stepping>,
     mut state: ResMut<State>,
@@ -118,7 +116,6 @@ fn build_ui(
         text_spans.push((
             TextSpan(format!("{label:?}\n")),
             TextFont {
-                font: asset_server.load(FONT_BOLD),
                 ..default()
             },
             TextColor(FONT_COLOR),
