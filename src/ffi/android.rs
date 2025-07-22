@@ -77,6 +77,15 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_touch(app, x as f32, y as f32);
+}
+
+
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn release_bevy_app(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     let app: Box<App> = unsafe { Box::from_raw(obj as *mut _) };
     crate::close_bevy_window(app);

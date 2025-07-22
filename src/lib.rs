@@ -19,6 +19,8 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
+use crate::scene3d::TouchInput;
+
 #[cfg(target_os = "android")]
 mod android_asset_io;
 
@@ -103,6 +105,13 @@ pub fn create_breakout_app(
     }
 
     bevy_app
+}
+
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub(crate) fn change_touch(app: &mut App, x: f32, y: f32) {
+    let mut touch_input = app.world_mut().resource_mut::<TouchInput>();
+    touch_input.touch_delta = Some(Vec2::new(x, y));
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]

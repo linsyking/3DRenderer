@@ -2,11 +2,16 @@ package name.renderer.bevy
 
 import android.content.Context
 import android.graphics.Canvas
-import android.hardware.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+
 
 class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var rustBrige = RustBridge()
@@ -14,6 +19,7 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var ndk_inited = false
     private var sensorManager: SensorManager? = null
     private var mSensor: Sensor? = null
+    private var lastTouchPos : Pair<Float, Float> = Pair(0.0f, 0.0f)
     private var sensorValues: FloatArray = FloatArray(3)
 
     constructor(context: Context) : super(context) {
@@ -35,6 +41,35 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+    }
+
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+//                Log.d("Touch", "ACTION_DOWN at: " + event.x + ", " + event.y)
+                lastTouchPos = Pair(event.x, event.y)
+                return true
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+//                Log.d("Touch", "ACTION_MOVE at: " + event.x + ", " + event.y)
+                if (bevy_app != Long.MAX_VALUE) {
+                    rustBrige.device_touch_move(bevy_app, event.x - lastTouchPos.first, event.y - lastTouchPos.second)
+                }
+                lastTouchPos = Pair(event.x, event.y)
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+//                Log.d("Touch", "ACTION_UP at: " + event.x + ", " + event.y)
+                if (bevy_app != Long.MAX_VALUE) {
+                    rustBrige.device_touch_move(bevy_app, 0.0f, 0.0f)
+                }
+                return true
+            }
+        }
+        return super.onTouchEvent(event)
     }
 
     // 绘制表面被创建后，创建/重新创建 Bevy App
