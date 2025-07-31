@@ -9,15 +9,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
@@ -49,6 +45,9 @@ fun MyApp() {
         composable("main") { SurfaceCard(navController) }
         composable("settings") {
             SettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable("toolbox") {
+            ToolboxScreen(onBack = { navController.navigateUp() })
         }
     }
 }
@@ -98,7 +97,6 @@ fun SurfaceCard(navController: NavHostController) {
                     }
                 }
 
-
                 Text(
                     text = "3D Renderer",
                     modifier = Modifier.align(Alignment.CenterVertically),
@@ -106,7 +104,6 @@ fun SurfaceCard(navController: NavHostController) {
                 )
 
                 IconButton(onClick = {
-                    // Handle settings
                     navController.navigate("settings")
                 }) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
@@ -122,13 +119,32 @@ fun SurfaceCard(navController: NavHostController) {
                         surfaceView = sv
                         sv
                     } else {
-                        surfaceView!!  // safely unwrap since you know it’s not null here
+                        surfaceView!!
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             )
+        }
+
+        // Toolbox Icon at the bottom of the main page
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        ) {
+            IconButton(onClick = {
+                navController.navigate("toolbox")
+            }) {
+                // The painterResource function handles both PNGs and Vector Drawables (.xml)
+                // correctly, so the code remains the same. The key is to ensure your
+                // XML file is correctly named and located in res/drawable.
+                Icon(
+                    painter = painterResource(id = R.drawable.toolbox),
+                    contentDescription = "Toolbox"
+                )
+            }
         }
     }
 }
