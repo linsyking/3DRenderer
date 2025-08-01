@@ -141,7 +141,7 @@ fun SurfaceCard(navController: NavHostController) {
                 // correctly, so the code remains the same. The key is to ensure your
                 // XML file is correctly named and located in res/drawable.
                 Icon(
-                    painter = painterResource(id = R.drawable.toolbox),
+                    painter = painterResource(id=R.drawable.toolbox),
                     contentDescription = "Toolbox"
                 )
             }

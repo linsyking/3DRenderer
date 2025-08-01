@@ -7,7 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -59,32 +59,32 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 // Row 1: Undo, Redo, View, Edit
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the Settings icon
-                        ToolboxItem("undo", Icons.Default.Settings),
-                        ToolboxItem("redo", Icons.Default.Settings),
-                        ToolboxItem("view", Icons.Default.Settings),
-                        ToolboxItem("edit", Icons.Default.Settings),
+                        // All icons are now the toolbox drawable resource
+                        ToolboxItem("undo", R.drawable.undo),
+                        ToolboxItem("redo", R.drawable.redo),
+                        ToolboxItem("view", R.drawable.view),
+                        ToolboxItem("edit", R.drawable.edit),
                     )
                 )
 
                 // Row 2: Text, Light, Transform
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the Settings icon
-                        ToolboxItem("text", Icons.Default.Settings),
-                        ToolboxItem("light", Icons.Default.Settings),
-                        ToolboxItem("transform", Icons.Default.Settings),
+                        // All icons are now the toolbox drawable resource
+                        ToolboxItem("text", R.drawable.text),
+                        ToolboxItem("light", R.drawable.light),
+                        ToolboxItem("transform", R.drawable.transform),
                     )
                 )
 
                 // Row 3: Polygon, Polyline, Shape, Curve
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the Settings icon
-                        ToolboxItem("polygon", Icons.Default.Settings),
-                        ToolboxItem("polyline", Icons.Default.Settings),
-                        ToolboxItem("shape", Icons.Default.Settings),
-                        ToolboxItem("curve", Icons.Default.Settings),
+                        // All icons are now the toolbox drawable resource
+                        ToolboxItem("polygon", R.drawable.polygon),
+                        ToolboxItem("polyline", R.drawable.polyline),
+                        ToolboxItem("shape", R.drawable.shape),
+                        ToolboxItem("curve", R.drawable.curve),
                     )
                 )
             }
@@ -93,9 +93,10 @@ fun ToolboxScreen(onBack: () -> Unit) {
 }
 
 // A data class to hold icon and text information for each toolbox item
+// The icon is now an Int representing the drawable resource ID
 data class ToolboxItem(
     val text: String,
-    val icon: ImageVector
+    val icon: Int
 )
 
 // A reusable composable for a single row of toolbox items
@@ -126,7 +127,8 @@ fun ToolboxButton(item: ToolboxItem, onClick: () -> Unit) {
             modifier = Modifier.size(48.dp)
         ) {
             Icon(
-                imageVector = item.icon,
+                // Use painterResource to load the drawable from the resource ID
+                painter = painterResource(id = item.icon),
                 contentDescription = item.text,
                 modifier = Modifier.size(24.dp)
             )
