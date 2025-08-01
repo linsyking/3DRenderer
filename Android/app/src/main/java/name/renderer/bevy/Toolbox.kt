@@ -1,8 +1,6 @@
 package name.renderer.bevy
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,8 +9,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/**
+ * The ToolboxScreen composable function.
+ * This screen displays a grid of icons for various tools.
+ *
+ * @param onBack A callback function to handle navigating back from this screen.
+ * @param onEditClick A callback function to handle navigating to the EditScreen.
+ */
 @Composable
-fun ToolboxScreen(onBack: () -> Unit) {
+fun ToolboxScreen(onBack: () -> Unit, onEditClick: () -> Unit) {
     val insets = WindowInsets.systemBars.asPaddingValues()
 
     // Using a Surface for the toolbox to give it a distinct background and elevation
@@ -26,7 +31,7 @@ fun ToolboxScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header for the toolbox with a back button
+            // Header for the toolbox with a back button, now using a custom drawable resource.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -35,8 +40,9 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
+                    // Using a custom drawable for the back button
                     Icon(
-                        Icons.Default.ArrowBack,
+                        painter = painterResource(id = R.drawable.arrow_back),
                         contentDescription = "Back"
                     )
                 }
@@ -59,32 +65,32 @@ fun ToolboxScreen(onBack: () -> Unit) {
                 // Row 1: Undo, Redo, View, Edit
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the toolbox drawable resource
-                        ToolboxItem("undo", R.drawable.undo),
-                        ToolboxItem("redo", R.drawable.redo),
-                        ToolboxItem("view", R.drawable.view),
-                        ToolboxItem("edit", R.drawable.edit),
+                        // All icons are now the specific drawable resources
+                        ToolboxItem("undo", R.drawable.undo, onClick = { /* TODO: Handle undo */ }),
+                        ToolboxItem("redo", R.drawable.redo, onClick = { /* TODO: Handle redo */ }),
+                        ToolboxItem("view", R.drawable.view, onClick = { /* TODO: Handle view */ }),
+                        ToolboxItem("edit", R.drawable.edit, onClick = onEditClick),
                     )
                 )
 
                 // Row 2: Text, Light, Transform
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the toolbox drawable resource
-                        ToolboxItem("text", R.drawable.text),
-                        ToolboxItem("light", R.drawable.light),
-                        ToolboxItem("transform", R.drawable.transform),
+                        // All icons are now the specific drawable resources
+                        ToolboxItem("text", R.drawable.text, onClick = { /* TODO: Handle text */ }),
+                        ToolboxItem("light", R.drawable.light, onClick = { /* TODO: Handle light */ }),
+                        ToolboxItem("transform", R.drawable.transform, onClick = { /* TODO: Handle transform */ }),
                     )
                 )
 
                 // Row 3: Polygon, Polyline, Shape, Curve
                 ToolboxRow(
                     items = listOf(
-                        // All icons are now the toolbox drawable resource
-                        ToolboxItem("polygon", R.drawable.polygon),
-                        ToolboxItem("polyline", R.drawable.polyline),
-                        ToolboxItem("shape", R.drawable.shape),
-                        ToolboxItem("curve", R.drawable.curve),
+                        // All icons are now the specific drawable resources
+                        ToolboxItem("polygon", R.drawable.polygon, onClick = { /* TODO: Handle polygon */ }),
+                        ToolboxItem("polyline", R.drawable.polyline, onClick = { /* TODO: Handle polyline */ }),
+                        ToolboxItem("shape", R.drawable.shape, onClick = { /* TODO: Handle shape */ }),
+                        ToolboxItem("curve", R.drawable.curve, onClick = { /* TODO: Handle curve */ }),
                     )
                 )
             }
@@ -92,11 +98,12 @@ fun ToolboxScreen(onBack: () -> Unit) {
     }
 }
 
-// A data class to hold icon and text information for each toolbox item
-// The icon is now an Int representing the drawable resource ID
+// A data class to hold icon and text information for each toolbox item.
+// The icon is now an Int representing the drawable resource ID, and a click handler is included.
 data class ToolboxItem(
     val text: String,
-    val icon: Int
+    val icon: Int,
+    val onClick: () -> Unit
 )
 
 // A reusable composable for a single row of toolbox items
@@ -109,7 +116,7 @@ fun ToolboxRow(items: List<ToolboxItem>) {
         items.forEach { item ->
             ToolboxButton(
                 item = item,
-                onClick = { /* TODO: Handle button click for ${item.text} */ }
+                onClick = item.onClick
             )
         }
     }
