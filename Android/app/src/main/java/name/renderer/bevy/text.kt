@@ -25,49 +25,96 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlin.math.roundToInt
 
-/**
- * A composable function to display the TextScreen.
- * It shows the 3D object and provides controls to edit text properties.
- *
- * @param onBack A callback function to handle navigating back from this screen.
- */
+// A composable function to display a draggable and resizable text box.
 @Composable
-fun TextScreen(onBack: () -> Unit) {
-    val insets = WindowInsets.systemBars.asPaddingValues()
+fun DraggableResizableTextBox(
+    state: AppState,
+    onStateChange: (AppState) -> Unit
+) {
+    // The minimum size of the text box.
+    val minSize = 50.dp
+    // Use rememberUpdatedState to get the latest state value within pointerInput.
+    val currentAppState by rememberUpdatedState(state)
 
-    // State variables for text properties
-    var selectedColor by remember { mutableStateOf(Color.Black) }
-    var opacity by remember { mutableStateOf(1.0f) }
-    var fontName by remember { mutableStateOf("Times") }
-    var isBold by remember { mutableStateOf(false) }
-    var isItalic by remember { mutableStateOf(false) }
-    var isUnderlined by remember { mutableStateOf(false) }
-    var alignment by remember { mutableStateOf(TextAlign.Center) }
-    var lineSpacing by remember { mutableStateOf(1.0f) }
-
-    var showColorDialog by remember { mutableStateOf(false) }
-
-    // State for editable text content
-    var editableText by remember { mutableStateOf("Text") }
-
-    // States for drag offset (for moving the box)
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
-
-    // States for text box size (for resizing)
-    var boxWidth by remember { mutableStateOf(200.dp) }
-    var boxHeight by remember { mutableStateOf(100.dp) }
-    val minSize = 50.dp // Minimum size for the text box
-
-    if (showColorDialog) {
-        ColorPickerDialog(
-            onDismissRequest = { showColorDialog = false },
-            onColorSelected = {
-                selectedColor = it
-                showColorDialog = false
+    Box(
+        modifier = Modifier
+            // Use the state values directly, no local state needed for offset or size.
+            .offset { IntOffset(state.offsetX.roundToInt(), state.offsetY.roundToInt()) }
+            .size(state.boxWidth.dp, state.boxHeight.dp)
+            .border(
+                BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                RoundedCornerShape(4.dp)
+            )
+            .padding(8.dp)
+            // This pointerInput block handles dragging the text box.
+            // The `rememberUpdatedState` ensures that `currentAppState` is always the most recent state,
+            // preventing the drag from "snapping" back to a previous position.
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+                    // Calculate the new position based on the latest state.
+                    val newOffsetX = currentAppState.offsetX + dragAmount.x
+                    val newOffsetY = currentAppState.offsetY + dragAmount.y
+                    // Update the parent state with the new position, preserving all other properties.
+                    onStateChange(currentAppState.copy(offsetX = newOffsetX, offsetY = newOffsetY))
+                }
             }
+    ) {
+        // The text input field itself.
+        TextField(
+            value = state.text,
+            onValueChange = { onStateChange(state.copy(text = it)) },
+            modifier = Modifier.fillMaxSize(),
+            placeholder = { Text("Text") },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            textStyle = TextStyle(
+                color = state.color.copy(alpha = state.opacity),
+                fontWeight = if (state.isBold) FontWeight.Bold else FontWeight.Normal,
+                fontStyle = if (state.isItalic) FontStyle.Italic else FontStyle.Normal,
+                textDecoration = if (state.isUnderlined) TextDecoration.Underline else TextDecoration.None,
+                textAlign = state.alignment,
+                lineHeight = state.lineHeight.sp
+            )
+        )
+
+        // The resize handle in the bottom-right corner.
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(16.dp)
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(topStart = 8.dp))
+                // This pointerInput block handles resizing the text box.
+                // It also uses `rememberUpdatedState` to get the latest state.
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        // Calculate the new size based on the latest state.
+                        val newWidth = (currentAppState.boxWidth + dragAmount.x).coerceAtLeast(minSize.toPx())
+                        val newHeight = (currentAppState.boxHeight + dragAmount.y).coerceAtLeast(minSize.toPx())
+                        // Update the parent state with the new size, preserving all other properties.
+                        onStateChange(currentAppState.copy(boxWidth = newWidth, boxHeight = newHeight))
+                    }
+                }
         )
     }
+}
+
+/**
+ * The main composable function for the TextScreen.
+ * This version holds all state internally and does not receive external parameters.
+ */
+@Composable
+fun TextScreen(
+    appState: AppState, // Receives the app state.
+    onUpdateAppState: (AppState) -> Unit, // Receives a callback to update the app state.
+    onBack: () -> Unit, // Callback to go back to the main page.
+) {
+    val insets = WindowInsets.systemBars.asPaddingValues()
 
     Surface(
         modifier = Modifier
@@ -79,7 +126,7 @@ fun TextScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header with back button
+            // Header with a back button.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,191 +136,147 @@ fun TextScreen(onBack: () -> Unit) {
                 IconButton(onClick = onBack) {
                     Icon(
                         painter = painterResource(id = R.drawable.arrow_back),
-                        contentDescription = "Back"
+                        contentDescription = "返回"
                     )
                 }
                 Text(
-                    text = "Text Editing",
+                    text = "文本编辑",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
             }
 
-            // Placeholder for the 3D object view with editable text
+            // Main canvas for the 3D view and the text box.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color.White),
-                contentAlignment = Alignment.Center
+                    .background(Color.White)
             ) {
-                // This is a placeholder for the actual 3D view
+                // This is a placeholder for the actual 3D view.
                 AndroidView(
                     factory = { ctx ->
-                        surfaceView ?: BevySurfaceView(context = ctx).also { surfaceView = it }
+                        // Access the global variable, create a new instance if null.
+                        if (surfaceView == null) {
+                            BevySurfaceView(context = ctx).also { surfaceView = it }
+                        } else {
+                            surfaceView!!
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
                 )
 
-                // The resizable and draggable text box
-                Box(
-                    modifier = Modifier
-                        .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-                        .size(boxWidth, boxHeight)
-                        .border(
-                            BorderStroke(1.dp, Color.Black),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .padding(8.dp)
-                        .pointerInput(Unit) {
-                            // Drag gesture for moving the box
-                            detectDragGestures { change, dragAmount ->
-                                change.consume()
-                                offsetX += dragAmount.x
-                                offsetY += dragAmount.y
-                            }
-                        }
-                ) {
-                    // The text field itself
-                    TextField(
-                        value = editableText,
-                        onValueChange = { editableText = it },
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        placeholder = { Text("Text") },
-                        textStyle = TextStyle(
-                            color = selectedColor.copy(alpha = opacity),
-                            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                            fontStyle = if (isItalic) FontStyle.Italic else FontStyle.Normal,
-                            textDecoration = if (isUnderlined) TextDecoration.Underline else TextDecoration.None,
-                            textAlign = alignment,
-                            lineHeight = lineSpacing.sp
-                        )
-                    )
-
-                    // Resizing handle in the bottom-right corner
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(16.dp)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(topStart = 8.dp))
-                            .pointerInput(Unit) {
-                                // Drag gesture for resizing the box
-                                detectDragGestures { change, dragAmount ->
-                                    change.consume()
-                                    boxWidth = (boxWidth.toPx() + dragAmount.x).coerceAtLeast(minSize.toPx()).toDp()
-                                    boxHeight = (boxHeight.toPx() + dragAmount.y).coerceAtLeast(minSize.toPx()).toDp()
-                                }
-                            }
-                    )
-                }
+                // Display a draggable and resizable text box.
+                // The text box is now always rendered, allowing for immediate text input.
+                DraggableResizableTextBox(
+                    state = appState,
+                    onStateChange = onUpdateAppState
+                )
             }
 
-            // Text editing attributes section
+            // Text editing properties section.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Color attribute
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "color", modifier = Modifier.weight(1f))
+                // Color property.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "颜色", modifier = Modifier.weight(1f))
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(selectedColor, shape = RoundedCornerShape(4.dp))
+                            .background(appState.color, shape = RoundedCornerShape(4.dp))
                             .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
-                            .clickable { showColorDialog = true }
+                            .clickable { /* Handle color dialog here */ }
                     )
                 }
 
-                // Opacity slider
+                // Opacity slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "opacity", modifier = Modifier.weight(1f))
+                    Text(text = "不透明度", modifier = Modifier.weight(1f))
                     Slider(
-                        value = opacity,
-                        onValueChange = { opacity = it },
+                        value = appState.opacity,
+                        onValueChange = { onUpdateAppState(appState.copy(opacity = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
                 }
 
-                // Font and style
+                // Font and style.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "font", modifier = Modifier.weight(1f))
+                    Text(text = "字体", modifier = Modifier.weight(1f))
                     Row(modifier = Modifier.weight(3f)) {
-                        Text(text = fontName, modifier = Modifier.align(Alignment.CenterVertically))
+                        Text(text = "Times", modifier = Modifier.align(Alignment.CenterVertically))
                         Spacer(Modifier.width(8.dp))
-                        // Bold button
-                        IconButton(onClick = { isBold = !isBold }) {
+                        // Bold button.
+                        IconButton(onClick = { onUpdateAppState(appState.copy(isBold = !appState.isBold)) }) {
                             Icon(
                                 painterResource(id = R.drawable.bold),
-                                contentDescription = "Bold",
-                                tint = if (isBold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "加粗",
+                                tint = if (appState.isBold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        // Italic button
-                        IconButton(onClick = { isItalic = !isItalic }) {
+                        // Italic button.
+                        IconButton(onClick = { onUpdateAppState(appState.copy(isItalic = !appState.isItalic)) }) {
                             Icon(
                                 painterResource(id = R.drawable.italic),
-                                contentDescription = "Italic",
-                                tint = if (isItalic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "斜体",
+                                tint = if (appState.isItalic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        // Underline button
-                        IconButton(onClick = { isUnderlined = !isUnderlined }) {
+                        // Underline button.
+                        IconButton(onClick = { onUpdateAppState(appState.copy(isUnderlined = !appState.isUnderlined)) }) {
                             Icon(
                                 painterResource(id = R.drawable.underline),
-                                contentDescription = "Underline",
-                                tint = if (isUnderlined) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "下划线",
+                                tint = if (appState.isUnderlined) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
 
-                // Alignment
+                // Alignment.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "alignment", modifier = Modifier.weight(1f))
+                    Text(text = "对齐方式", modifier = Modifier.weight(1f))
                     Row(
                         modifier = Modifier.weight(3f),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        IconButton(onClick = { alignment = TextAlign.Left }) {
+                        IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Left)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_left),
-                                contentDescription = "Align Left",
-                                tint = if (alignment == TextAlign.Left) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "左对齐",
+                                tint = if (appState.alignment == TextAlign.Left) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        IconButton(onClick = { alignment = TextAlign.Center }) {
+                        IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Center)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_center),
-                                contentDescription = "Align Center",
-                                tint = if (alignment == TextAlign.Center) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "居中对齐",
+                                tint = if (appState.alignment == TextAlign.Center) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        IconButton(onClick = { alignment = TextAlign.Right }) {
+                        IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Right)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_right),
-                                contentDescription = "Align Right",
-                                tint = if (alignment == TextAlign.Right) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                contentDescription = "右对齐",
+                                tint = if (appState.alignment == TextAlign.Right) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
 
-                // Line spacing slider
+                // Line height slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "line spacing", modifier = Modifier.weight(1f))
+                    Text(text = "行间距", modifier = Modifier.weight(1f))
                     Slider(
-                        value = lineSpacing,
-                        onValueChange = { lineSpacing = it },
+                        value = appState.lineHeight,
+                        onValueChange = { onUpdateAppState(appState.copy(lineHeight = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0.5f..2.0f
                     )

@@ -16,9 +16,17 @@ import androidx.compose.ui.unit.dp
  * @param onBack A callback function to handle navigating back from this screen.
  * @param onEditClick A callback function to handle navigating to the EditScreen.
  * @param onTextClick A callback function to handle navigating to the TextScreen.
+ * @param appState The current state of the application.
+ * @param onUpdateAppState A callback function to update the application state.
  */
 @Composable
-fun ToolboxScreen(onBack: () -> Unit, onEditClick: () -> Unit, onTextClick: () -> Unit) {
+fun ToolboxScreen(
+    onBack: () -> Unit,
+    onEditClick: () -> Unit,
+    onTextClick: () -> Unit,
+    appState: AppState, // Now receives the AppState.
+    onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
+) {
     val insets = WindowInsets.systemBars.asPaddingValues()
 
     // Using a Surface for the toolbox to give it a distinct background and elevation
