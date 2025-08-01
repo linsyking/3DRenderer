@@ -15,9 +15,10 @@ import androidx.compose.ui.unit.dp
  *
  * @param onBack A callback function to handle navigating back from this screen.
  * @param onEditClick A callback function to handle navigating to the EditScreen.
+ * @param onTextClick A callback function to handle navigating to the TextScreen.
  */
 @Composable
-fun ToolboxScreen(onBack: () -> Unit, onEditClick: () -> Unit) {
+fun ToolboxScreen(onBack: () -> Unit, onEditClick: () -> Unit, onTextClick: () -> Unit) {
     val insets = WindowInsets.systemBars.asPaddingValues()
 
     // Using a Surface for the toolbox to give it a distinct background and elevation
@@ -77,7 +78,7 @@ fun ToolboxScreen(onBack: () -> Unit, onEditClick: () -> Unit) {
                 ToolboxRow(
                     items = listOf(
                         // All icons are now the specific drawable resources
-                        ToolboxItem("text", R.drawable.text, onClick = { /* TODO: Handle text */ }),
+                        ToolboxItem("text", R.drawable.text, onClick = onTextClick),
                         ToolboxItem("light", R.drawable.light, onClick = { /* TODO: Handle light */ }),
                         ToolboxItem("transform", R.drawable.transform, onClick = { /* TODO: Handle transform */ }),
                     )

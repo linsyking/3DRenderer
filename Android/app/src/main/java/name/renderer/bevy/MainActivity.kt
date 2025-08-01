@@ -48,10 +48,16 @@ fun MyApp() {
         }
         composable("toolbox") {
             ToolboxScreen(onBack = { navController.navigateUp() },
-                onEditClick={navController.navigate("edit")})
+                onEditClick={navController.navigate("edit")},
+                onTextClick={navController.navigate("text")}
+            )
         }
         composable("edit"){
             EditScreen ( onBack={navController.navigateUp()})
+        }
+        composable("text")
+        {
+            TextScreen(onBack={navController.navigateUp()})
         }
     }
 }
