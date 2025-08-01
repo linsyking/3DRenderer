@@ -31,7 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
-// 定义一个数据类，用来存储所有的应用状态
+// 应用程序的状态数据类
 data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
@@ -44,10 +44,12 @@ data class AppState(
     val alignment: TextAlign = TextAlign.Center,
     val lineHeight: Float = 1.0f,
     val color: Color = Color.Black,
-    val opacity: Float = 1.0f
+    val opacity: Float = 1.0f,
+    val metallic: Float = 0.0f,
+    val roughness: Float = 0.5f
 )
 
-// 将 BevySurfaceView 声明为全局变量，以便在 Composable 之间共享
+// BevySurfaceView 的全局变量，用于在不同 Composable 之间共享
 var surfaceView: BevySurfaceView? = null
 
 class MainActivity : ComponentActivity() {
@@ -62,7 +64,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    // 在顶层 Composable 中声明 AppState，以便可以传递给子页面
+    // 顶层状态，通过回调函数传递给子 Composable
     var appState by remember { mutableStateOf(AppState()) }
 
     NavHost(
@@ -72,7 +74,6 @@ fun MyApp() {
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        // 修改 SurfaceCard，使其接收 appState 和 onUpdateAppState
         composable("main") {
             SurfaceCard(
                 navController = navController,
@@ -80,11 +81,9 @@ fun MyApp() {
                 onUpdateAppState = { newState -> appState = newState }
             )
         }
-        // SettingsScreen 不涉及应用状态，因此不传递
         composable("settings") {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
-        // 修改 ToolboxScreen，使其接收 appState 和 onUpdateAppState
         composable("toolbox") {
             ToolboxScreen(
                 onBack = { navController.navigateUp() },
@@ -94,7 +93,6 @@ fun MyApp() {
                 onUpdateAppState = { newState -> appState = newState }
             )
         }
-        // 修改 EditScreen，使其接收 appState 和 onUpdateAppState
         composable("edit") {
             EditScreen(
                 onBack = { navController.navigateUp() },
@@ -102,7 +100,6 @@ fun MyApp() {
                 onUpdateAppState = { newState -> appState = newState }
             )
         }
-        // TextScreen 现在接收 AppState 和一个回调函数，以实现状态提升
         composable("text") {
             TextScreen(
                 appState = appState,
@@ -113,12 +110,12 @@ fun MyApp() {
     }
 }
 
-// SurfaceCard 现在需要接收 appState 和 onUpdateAppState
+// 主界面的 SurfaceCard
 @Composable
 fun SurfaceCard(
     navController: NavHostController,
-    appState: AppState, // New parameter
-    onUpdateAppState: (AppState) -> Unit // New parameter
+    appState: AppState,
+    onUpdateAppState: (AppState) -> Unit
 ) {
     val insets = WindowInsets.systemBars.asPaddingValues()
     var expanded by remember { mutableStateOf(false) }
@@ -176,7 +173,6 @@ fun SurfaceCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Put AndroidView and StaticTextBox in a Box.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -184,19 +180,11 @@ fun SurfaceCard(
             ) {
                 AndroidView(
                     factory = { ctx ->
-                        // Check the global variable, if null, create and assign it.
-                        if (surfaceView == null) {
-                            val sv = BevySurfaceView(context = ctx)
-                            surfaceView = sv
-                            sv
-                        } else {
-                            surfaceView!!
-                        }
+                        surfaceView ?: BevySurfaceView(context = ctx).also { surfaceView = it }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Render the text box on the main page, but only if the text is not empty.
                 if (appState.text.isNotEmpty()) {
                     StaticTextBox(
                         state = appState
@@ -205,7 +193,6 @@ fun SurfaceCard(
             }
         }
 
-        // Toolbox Icon at the bottom of the main page.
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -223,22 +210,7 @@ fun SurfaceCard(
     }
 }
 
-// Assumed EditScreen, now also receives appState.
-@Composable
-fun EditScreen(
-    onBack: () -> Unit,
-    appState: AppState, // New parameter
-    onUpdateAppState: (AppState) -> Unit // New parameter
-) {
-    // Assumed UI
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text("Edit Screen", modifier = Modifier.align(Alignment.Center))
-        IconButton(onClick = onBack) {
-            // ...
-        }
-    }
-}
-
+// 静态文本框，用于在主界面显示文本
 @Composable
 fun StaticTextBox(
     state: AppState

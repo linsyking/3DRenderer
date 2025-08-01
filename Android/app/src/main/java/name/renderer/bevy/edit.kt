@@ -17,8 +17,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
-// This is a placeholder for the color picker dialog.
-// In a real application, you would use a proper color picker library.
+/**
+ * 这是颜色选择器对话框的占位符。
+ * 在实际应用中，您会使用一个合适的颜色选择器库。
+ */
 @Composable
 fun ColorPickerDialog(
     onDismissRequest: () -> Unit,
@@ -31,7 +33,7 @@ fun ColorPickerDialog(
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Example colors
+                // 示例颜色
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
@@ -55,19 +57,21 @@ fun ColorPickerDialog(
     )
 }
 
-// This is a placeholder for the BevySurfaceView to display the 3D object.
-// You should replace this with your actual implementation that shows the editable object.
-//var surfaceView: BevySurfaceView? = null
-
+/**
+ * 显示编辑界面的 Composable 函数。
+ * 它显示 3D 对象并提供滑块来编辑其属性。
+ *
+ * @param onBack 回调函数，用于从该屏幕返回。
+ * @param appState 当前的应用状态。
+ * @param onUpdateAppState 回调函数，用于更新应用状态。
+ */
 @Composable
-fun EditScreen(onBack: () -> Unit) {
+fun EditScreen(
+    onBack: () -> Unit,
+    appState: AppState,
+    onUpdateAppState: (AppState) -> Unit
+) {
     val insets = WindowInsets.systemBars.asPaddingValues()
-
-    // State variables to save the attributes
-    var selectedColor by remember { mutableStateOf(Color.White) }
-    var opacity by remember { mutableStateOf(1.0f) }
-    var metallic by remember { mutableStateOf(0.0f) }
-    var roughness by remember { mutableStateOf(0.5f) } // Using roughness as a more common PBR term than 'gloss'
 
     var showColorDialog by remember { mutableStateOf(false) }
 
@@ -75,7 +79,8 @@ fun EditScreen(onBack: () -> Unit) {
         ColorPickerDialog(
             onDismissRequest = { showColorDialog = false },
             onColorSelected = {
-                selectedColor = it
+                // 使用 onUpdateAppState 回调更新颜色状态
+                onUpdateAppState(appState.copy(color = it))
                 showColorDialog = false
             }
         )
@@ -91,7 +96,7 @@ fun EditScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header with back button
+            // 带有返回按钮的标题
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,7 +114,7 @@ fun EditScreen(onBack: () -> Unit) {
                 )
             }
 
-            // Placeholder for the 3D object view
+            // 3D 对象视图的占位符
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -117,31 +122,30 @@ fun EditScreen(onBack: () -> Unit) {
                     .background(Color.Gray),
                 contentAlignment = Alignment.Center
             ) {
-                // Reinstating AndroidView with BevySurfaceView.
+                // 使用全局 surfaceView
                 AndroidView(
                     factory = { ctx ->
-                        if (surfaceView == null) {
-                            val sv = BevySurfaceView(context = ctx)
-                            surfaceView = sv
-                            sv
-                        } else {
-                            surfaceView!!
-                        }
+                        surfaceView ?: BevySurfaceView(context = ctx).also { surfaceView = it }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
                 )
+
+                // 在编辑界面也渲染文本
+                if (appState.text.isNotEmpty()) {
+                    StaticTextBox(state = appState)
+                }
             }
 
-            // Editing attributes section
+            // 编辑属性部分
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Color attribute
+                // 颜色属性
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -149,39 +153,41 @@ fun EditScreen(onBack: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(selectedColor)
+                            // 从 appState 获取当前颜色
+                            .background(appState.color)
                             .clickable { showColorDialog = true }
                     )
                 }
 
-                // Opacity slider
+                // 不透明度滑块
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Opacity", modifier = Modifier.weight(1f))
                     Slider(
-                        value = opacity,
-                        onValueChange = { opacity = it },
+                        // 从 appState 获取当前不透明度值
+                        value = appState.opacity,
+                        onValueChange = { onUpdateAppState(appState.copy(opacity = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
                 }
 
-                // Metallic slider
+                // 金属度滑块
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Metal", modifier = Modifier.weight(1f))
                     Slider(
-                        value = metallic,
-                        onValueChange = { metallic = it },
+                        value = appState.metallic,
+                        onValueChange = { onUpdateAppState(appState.copy(metallic = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
                 }
 
-                // Roughness (Gloss) slider
+                // 粗糙度（光泽）滑块
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Gloss", modifier = Modifier.weight(1f))
                     Slider(
-                        value = roughness,
-                        onValueChange = { roughness = it },
+                        value = appState.roughness,
+                        onValueChange = { onUpdateAppState(appState.copy(roughness = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
