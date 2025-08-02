@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -68,7 +69,7 @@ fun DraggableResizableTextBox(
             value = state.text,
             onValueChange = { onStateChange(state.copy(text = it)) },
             modifier = Modifier.fillMaxSize(),
-            placeholder = { Text("Text") },
+            placeholder = { Text("Text: Click to Type") },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -76,7 +77,7 @@ fun DraggableResizableTextBox(
                 unfocusedIndicatorColor = Color.Transparent
             ),
             textStyle = TextStyle(
-                color = state.color.copy(alpha = state.opacity),
+                color = state.textColor.copy(alpha = state.textOpacity),
                 fontWeight = if (state.isBold) FontWeight.Bold else FontWeight.Normal,
                 fontStyle = if (state.isItalic) FontStyle.Italic else FontStyle.Normal,
                 textDecoration = if (state.isUnderlined) TextDecoration.Underline else TextDecoration.None,
@@ -140,7 +141,7 @@ fun TextScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter = painterResource(id = R.drawable.arrow_back),
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -189,7 +190,7 @@ fun TextScreen(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(appState.color, shape = RoundedCornerShape(4.dp))
+                            .background(appState.textColor, shape = RoundedCornerShape(4.dp))
                             .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
                             .clickable { showColorPickerDialog = true }
                     )
@@ -199,8 +200,8 @@ fun TextScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Opacity", modifier = Modifier.weight(1f))
                     Slider(
-                        value = appState.opacity,
-                        onValueChange = { onUpdateAppState(appState.copy(opacity = it)) },
+                        value = appState.textOpacity,
+                        onValueChange = { onUpdateAppState(appState.copy(textOpacity = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
@@ -313,9 +314,9 @@ fun TextScreen(
             // Display the color picker dialog if showColorPickerDialog is true
             if (showColorPickerDialog) {
                 ColorPickerDialog(
-                    currentColor = appState.color,
+                    currentColor = appState.textColor,
                     onColorSelected = { newColor ->
-                        onUpdateAppState(appState.copy(color = newColor))
+                        onUpdateAppState(appState.copy(textColor = newColor))
                         showColorPickerDialog = false
                     },
                     onDismiss = { showColorPickerDialog = false }

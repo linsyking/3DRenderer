@@ -10,20 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 
-/**
- * Composable function for the EditScreen.
- * It displays the 3D object and provides sliders to edit its properties.
- *
- * @param onBack Callback to navigate back from this screen.
- * @param appState The current application state.
- * @param onUpdateAppState Callback to update the application state.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditScreen(
+fun PolygonScreen(
     onBack: () -> Unit,
     appState: AppState,
     onUpdateAppState: (AppState) -> Unit
@@ -32,12 +24,12 @@ fun EditScreen(
     var showColorDialog by remember { mutableStateOf(false) }
 
     if (showColorDialog) {
-        // This now calls the ColorPickerDialog defined in another file.
+        // MODIFICATION: Updated the call to use the new ColorPickerDialog signature
         ColorPickerDialog(
-            currentColor = appState.meshColor,
+            currentColor = appState.polygonColor, // Pass the current polygon color
             onDismiss = { showColorDialog = false },
             onColorSelected = {
-                onUpdateAppState(appState.copy(meshColor = it))
+                onUpdateAppState(appState.copy(polygonColor = it))
                 showColorDialog = false
             }
         )
@@ -54,7 +46,7 @@ fun EditScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopAppBar(
-                title = { Text("Mesh Editing") },
+                title = { Text("Polygon Editing") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -65,6 +57,7 @@ fun EditScreen(
                 }
             )
 
+            // The rest of the screen content remains the same
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -80,11 +73,6 @@ fun EditScreen(
                         .fillMaxWidth()
                         .fillMaxHeight()
                 )
-
-                if (appState.text.isNotEmpty()) {
-                    // This assumes StaticTextBox is also defined elsewhere (e.g., MainActivity.kt)
-                    StaticTextBox(state = appState)
-                }
             }
 
             Column(
@@ -93,7 +81,6 @@ fun EditScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Color property
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -101,39 +88,36 @@ fun EditScreen(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(appState.meshColor)
+                            .background(appState.polygonColor)
                             .clickable { showColorDialog = true }
                     )
                 }
 
-                // Opacity slider
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Opacity", modifier = Modifier.weight(1f))
                     Slider(
-                        value = appState.meshOpacity,
-                        onValueChange = { onUpdateAppState(appState.copy(meshOpacity = it)) },
+                        value = appState.polygonOpacity,
+                        onValueChange = { onUpdateAppState(appState.copy(polygonOpacity = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
                 }
 
-                // Metal slider
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Metal", modifier = Modifier.weight(1f))
                     Slider(
-                        value = appState.meshMetallic,
-                        onValueChange = { onUpdateAppState(appState.copy(meshMetallic = it)) },
+                        value = appState.polygonMetallic,
+                        onValueChange = { onUpdateAppState(appState.copy(polygonMetallic = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )
                 }
 
-                // Roughness (Gloss) slider
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Gloss", modifier = Modifier.weight(1f))
                     Slider(
-                        value = appState.meshRoughness,
-                        onValueChange = { onUpdateAppState(appState.copy(meshRoughness = it)) },
+                        value = appState.polygonRoughness,
+                        onValueChange = { onUpdateAppState(appState.copy(polygonRoughness = it)) },
                         modifier = Modifier.weight(3f),
                         valueRange = 0f..1f
                     )

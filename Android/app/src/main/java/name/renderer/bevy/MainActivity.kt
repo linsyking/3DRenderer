@@ -1,11 +1,15 @@
 package name.renderer.bevy
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -31,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
-// Application state data class, now updated for ViewScreen.
+// Final AppState data class with all properties
 data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
@@ -43,21 +47,29 @@ data class AppState(
     val isUnderlined: Boolean = false,
     val alignment: TextAlign = TextAlign.Center,
     val lineHeight: Float = 1.0f,
-    val color: Color = Color.Black,
-    val opacity: Float = 1.0f,
-    val metallic: Float = 0.0f,
-    val roughness: Float = 0.5f,
+    val textColor: Color = Color.Black,
+    val textOpacity: Float = 1.0f,
+    val meshColor: Color = Color.Black,
+    val meshOpacity: Float = 1.0f,
+    val meshMetallic: Float = 0.0f,
+    val meshRoughness: Float = 0.5f,
     val canvasWidth: Float = 1200f,
     val canvasHeight: Float = 800f,
     val backgroundColor: Color = Color.White,
     val environmentLightColor: Color = Color.White,
     val environmentLightStrength: Float = 0.5f,
     val fontName: String = "Times",
-
-    // --- NEW PROPERTIES ADDED FOR ViewScreen ---
-    val viewScale: Float = 1.0f,       // For zoom level
-    val viewOffsetX: Float = 0f,       // For horizontal pan
-    val viewOffsetY: Float = 0f        // For vertical pan
+    val viewScale: Float = 1.0f,
+    val viewOffsetX: Float = 0f,
+    val viewOffsetY: Float = 0f,
+    val polygonColor: Color = Color.Blue,
+    val polygonOpacity: Float = 1.0f,
+    val polygonMetallic: Float = 0.0f,
+    val polygonRoughness: Float = 0.5f,
+    val shapeColor: Color = Color. Blue,
+    val shapeOpacity: Float = 1.0f,
+    val shapeMetallic: Float = 0.0f,
+    val shapeRoughness: Float = 0.5f
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -105,7 +117,9 @@ fun MyApp() {
                 onEditClick = { navController.navigate("edit") },
                 onTextClick = { navController.navigate("text") },
                 onTransformClick = { navController.navigate("transform") },
-                onViewClick = { navController.navigate("view") }, // This line navigates to the "view" route
+                onViewClick = { navController.navigate("view") },
+                onPolygonClick={navController.navigate("polygon")},
+                onShapeClick={navController.navigate("shape")},
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -131,9 +145,22 @@ fun MyApp() {
                 onBack = { navController.navigateUp() }
             )
         }
-        // This composable block correctly sets up the ViewScreen
         composable("view") {
             ViewScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        composable("polygon") {
+            PolygonScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        composable("shape") {
+            ShapeScreen(
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState },
                 onBack = { navController.navigateUp() }
@@ -152,6 +179,28 @@ fun SurfaceCard(
     val insets = WindowInsets.systemBars.asPaddingValues()
     var expanded by remember { mutableStateOf(false) }
 
+    // Launcher for OPENING files (Open Scene, Import Mesh)
+    val openDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                // User has selected a file.
+                // TODO: Pass this URI to your Rust bridge to handle the file.
+            }
+        }
+    )
+
+    // Launcher for SAVING files (Save Scene, Export Image)
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*"),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                // User has created a file.
+                // TODO: Use this URI to save your scene or image data.
+            }
+        }
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -165,26 +214,51 @@ fun SurfaceCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Box {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
+                // [MODIFICATION 1] Menu icon with text
+                Column(
+                    modifier = Modifier.clickable { expanded = true },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    Text(text = "Menu", fontSize = 10.sp)
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Import File") },
+                            text = { Text("Open Scene") },
                             onClick = {
+                                openDocumentLauncher.launch(arrayOf("*/*"))
                                 expanded = false
-                                // Handle Import File
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Export File") },
+                            text = { Text("Save Scene") },
                             onClick = {
+                                createDocumentLauncher.launch("MyScene.scene")
                                 expanded = false
-                                // Handle Export File
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Import Mesh") },
+                            onClick = {
+                                openDocumentLauncher.launch(arrayOf("*/*"))
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Export Image") },
+                            onClick = {
+                                createDocumentLauncher.launch("MyImage.png")
+                                expanded = false
+                            }
+                        )
+                        Divider()
+                        DropdownMenuItem(
+                            text = { Text("Settings") },
+                            onClick = {
+                                navController.navigate("settings")
+                                expanded = false
                             }
                         )
                     }
@@ -196,10 +270,13 @@ fun SurfaceCard(
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                IconButton(onClick = {
-                    navController.navigate("settings")
-                }) {
+                // [MODIFICATION 2] Settings icon with text
+                Column(
+                    modifier = Modifier.clickable { navController.navigate("settings") },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    Text(text = "Settings", fontSize = 10.sp)
                 }
             }
 
@@ -225,18 +302,21 @@ fun SurfaceCard(
             }
         }
 
+        // [MODIFICATION 3] Toolbox icon with text
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp)
         ) {
-            IconButton(onClick = {
-                navController.navigate("toolbox")
-            }) {
+            Column(
+                modifier = Modifier.clickable { navController.navigate("toolbox") },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.toolbox),
                     contentDescription = "Toolbox"
                 )
+                Text(text = "Toolbox", style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -257,14 +337,12 @@ fun StaticTextBox(
         Text(
             text = state.text,
             style = TextStyle(
-                color = state.color.copy(alpha = state.opacity),
+                color = state.textColor.copy(alpha = state.textOpacity),
                 fontWeight = if (state.isBold) FontWeight.Bold else FontWeight.Normal,
                 fontStyle = if (state.isItalic) FontStyle.Italic else FontStyle.Normal,
                 textDecoration = if (state.isUnderlined) TextDecoration.Underline else TextDecoration.None,
                 textAlign = state.alignment,
                 lineHeight = state.lineHeight.sp
-                // Note: For a real app, you would use FontFamily to apply the selected font.
-                // For this example, we'll just display the font name in the UI.
             ),
             modifier = Modifier.fillMaxSize()
         )

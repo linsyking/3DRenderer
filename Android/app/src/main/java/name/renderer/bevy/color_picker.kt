@@ -55,7 +55,7 @@ fun ColorPickerDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "选择颜色",
+                    text = "Pick a color",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -88,7 +88,7 @@ fun ColorPickerDialog(
 
                 // Dismiss button
                 Button(onClick = onDismiss) {
-                    Text("取消")
+                    Text("Cancel")
                 }
             }
         }

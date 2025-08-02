@@ -1,6 +1,8 @@
 package name.renderer.bevy
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +28,8 @@ fun ToolboxScreen(
     onTextClick: () -> Unit,
     onTransformClick: () -> Unit,
     onViewClick: () -> Unit,
+    onPolygonClick: () -> Unit,
+    onShapeClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -53,7 +57,7 @@ fun ToolboxScreen(
                 IconButton(onClick = onBack) {
                     // Using a custom drawable for the back button
                     Icon(
-                        painter = painterResource(id = R.drawable.arrow_back),
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }
@@ -98,9 +102,9 @@ fun ToolboxScreen(
                 ToolboxRow(
                     items = listOf(
                         // All icons are now the specific drawable resources
-                        ToolboxItem("polygon", R.drawable.polygon, onClick = { /* TODO: Handle polygon */ }),
+                        ToolboxItem("polygon", R.drawable.polygon, onClick = onPolygonClick),
                         ToolboxItem("polyline", R.drawable.polyline, onClick = { /* TODO: Handle polyline */ }),
-                        ToolboxItem("shape", R.drawable.shape, onClick = { /* TODO: Handle shape */ }),
+                        ToolboxItem("shape", R.drawable.shape, onClick = onShapeClick),
                         ToolboxItem("curve", R.drawable.curve, onClick = { /* TODO: Handle curve */ }),
                     )
                 )
