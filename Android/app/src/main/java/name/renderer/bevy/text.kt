@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +34,7 @@ fun DraggableResizableTextBox(
     onStateChange: (AppState) -> Unit
 ) {
     // The minimum size of the text box.
-    val minSize = 50.dp
+    val minSize = 20.dp
     // Use rememberUpdatedState to get the latest state value within pointerInput.
     val currentAppState by rememberUpdatedState(state)
 
@@ -45,7 +47,8 @@ fun DraggableResizableTextBox(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 RoundedCornerShape(4.dp)
             )
-            .padding(8.dp)
+            // Reduced padding from 8.dp to 4.dp to give more room for the text.
+            .padding(4.dp)
             // This pointerInput block handles dragging the text box.
             // The `rememberUpdatedState` ensures that `currentAppState` is always the most recent state,
             // preventing the drag from "snapping" back to a previous position.
@@ -94,6 +97,7 @@ fun DraggableResizableTextBox(
                     detectDragGestures { change, dragAmount ->
                         change.consume()
                         // Calculate the new size based on the latest state.
+                        // The minimum size is enforced here.
                         val newWidth = (currentAppState.boxWidth + dragAmount.x).coerceAtLeast(minSize.toPx())
                         val newHeight = (currentAppState.boxHeight + dragAmount.y).coerceAtLeast(minSize.toPx())
                         // Update the parent state with the new size, preserving all other properties.
@@ -106,7 +110,7 @@ fun DraggableResizableTextBox(
 
 /**
  * The main composable function for the TextScreen.
- * This version holds all state internally and does not receive external parameters.
+ * This version now includes a clickable font selector.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,9 +120,9 @@ fun TextScreen(
     onBack: () -> Unit, // Callback to go back to the main page.
 ) {
     val insets = WindowInsets.systemBars.asPaddingValues()
-
-    // State to control the visibility of the color picker dialog
     var showColorPickerDialog by remember { mutableStateOf(false) }
+    var fontDropdownExpanded by remember { mutableStateOf(false) } // State for the font dropdown menu
+    val availableFonts = listOf("Times", "Arial", "Courier New") // A list of placeholder fonts
 
     Surface(
         modifier = Modifier
@@ -166,7 +170,6 @@ fun TextScreen(
                 )
 
                 // Display a draggable and resizable text box.
-                // The text box is now always rendered, allowing for immediate text input.
                 DraggableResizableTextBox(
                     state = appState,
                     onStateChange = onUpdateAppState
@@ -206,10 +209,40 @@ fun TextScreen(
                 // Font and style.
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Font", modifier = Modifier.weight(1f))
+                    Box(modifier = Modifier.weight(3f)) {
+                        Row(
+                            modifier = Modifier.clickable { fontDropdownExpanded = true },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = appState.fontName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = "Select Font"
+                            )
+                        }
+                        // Dropdown menu for font selection
+                        DropdownMenu(
+                            expanded = fontDropdownExpanded,
+                            onDismissRequest = { fontDropdownExpanded = false }
+                        ) {
+                            availableFonts.forEach { font ->
+                                DropdownMenuItem(
+                                    text = { Text(font) },
+                                    onClick = {
+                                        onUpdateAppState(appState.copy(fontName = font))
+                                        fontDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    // Style buttons (Bold, Italic, Underline)
                     Row(modifier = Modifier.weight(3f)) {
-                        Text(text = "Times", modifier = Modifier.align(Alignment.CenterVertically))
                         Spacer(Modifier.width(8.dp))
-                        // Bold button.
                         IconButton(onClick = { onUpdateAppState(appState.copy(isBold = !appState.isBold)) }) {
                             Icon(
                                 painterResource(id = R.drawable.bold),
@@ -217,7 +250,6 @@ fun TextScreen(
                                 tint = if (appState.isBold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        // Italic button.
                         IconButton(onClick = { onUpdateAppState(appState.copy(isItalic = !appState.isItalic)) }) {
                             Icon(
                                 painterResource(id = R.drawable.italic),
@@ -225,7 +257,6 @@ fun TextScreen(
                                 tint = if (appState.isItalic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        // Underline button.
                         IconButton(onClick = { onUpdateAppState(appState.copy(isUnderlined = !appState.isUnderlined)) }) {
                             Icon(
                                 painterResource(id = R.drawable.underline),

@@ -31,7 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
-// Application state data class
+// Application state data class, now with a fontName property.
 data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
@@ -47,12 +47,12 @@ data class AppState(
     val opacity: Float = 1.0f,
     val metallic: Float = 0.0f,
     val roughness: Float = 0.5f,
-    // New settings properties from the user's sketch
     val canvasWidth: Float = 1200f,
     val canvasHeight: Float = 800f,
     val backgroundColor: Color = Color.White,
     val environmentLightColor: Color = Color.White,
-    val environmentLightStrength: Float = 0.5f
+    val environmentLightStrength: Float = 0.5f,
+    val fontName: String = "Times" // Added fontName property
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -249,6 +249,8 @@ fun StaticTextBox(
                 textDecoration = if (state.isUnderlined) TextDecoration.Underline else TextDecoration.None,
                 textAlign = state.alignment,
                 lineHeight = state.lineHeight.sp
+                // Note: For a real app, you would use FontFamily to apply the selected font.
+                // For this example, we'll just display the font name in the UI.
             ),
             modifier = Modifier.fillMaxSize()
         )
