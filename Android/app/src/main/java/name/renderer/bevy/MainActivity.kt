@@ -31,7 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
-// Application state data class, now with a fontName property.
+// Application state data class, now updated for ViewScreen.
 data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
@@ -52,7 +52,12 @@ data class AppState(
     val backgroundColor: Color = Color.White,
     val environmentLightColor: Color = Color.White,
     val environmentLightStrength: Float = 0.5f,
-    val fontName: String = "Times" // Added fontName property
+    val fontName: String = "Times",
+
+    // --- NEW PROPERTIES ADDED FOR ViewScreen ---
+    val viewScale: Float = 1.0f,       // For zoom level
+    val viewOffsetX: Float = 0f,       // For horizontal pan
+    val viewOffsetY: Float = 0f        // For vertical pan
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -100,6 +105,7 @@ fun MyApp() {
                 onEditClick = { navController.navigate("edit") },
                 onTextClick = { navController.navigate("text") },
                 onTransformClick = { navController.navigate("transform") },
+                onViewClick = { navController.navigate("view") }, // This line navigates to the "view" route
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -120,6 +126,14 @@ fun MyApp() {
         }
         composable("transform") {
             TransformScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        // This composable block correctly sets up the ViewScreen
+        composable("view") {
+            ViewScreen(
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState },
                 onBack = { navController.navigateUp() }

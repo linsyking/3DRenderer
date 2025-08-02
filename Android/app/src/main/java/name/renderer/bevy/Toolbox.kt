@@ -25,6 +25,7 @@ fun ToolboxScreen(
     onEditClick: () -> Unit,
     onTextClick: () -> Unit,
     onTransformClick: () -> Unit,
+    onViewClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -78,7 +79,7 @@ fun ToolboxScreen(
                         // All icons are now the specific drawable resources
                         ToolboxItem("undo", R.drawable.undo, onClick = { /* TODO: Handle undo */ }),
                         ToolboxItem("redo", R.drawable.redo, onClick = { /* TODO: Handle redo */ }),
-                        ToolboxItem("view", R.drawable.view, onClick = { /* TODO: Handle view */ }),
+                        ToolboxItem("view", R.drawable.view, onClick = onViewClick),
                         ToolboxItem("edit", R.drawable.edit, onClick = onEditClick),
                     )
                 )
