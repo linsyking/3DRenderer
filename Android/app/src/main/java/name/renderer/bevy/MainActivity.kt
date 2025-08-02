@@ -69,7 +69,11 @@ data class AppState(
     val shapeColor: Color = Color. Blue,
     val shapeOpacity: Float = 1.0f,
     val shapeMetallic: Float = 0.0f,
-    val shapeRoughness: Float = 0.5f
+    val shapeRoughness: Float = 0.5f,
+    val polylineColor: Color = Color. Blue,
+    val polylineOpacity: Float = 1.0f,
+    val curveColor: Color=Color.Blue,
+    val curveOpacity: Float=1.0f,
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -120,6 +124,8 @@ fun MyApp() {
                 onViewClick = { navController.navigate("view") },
                 onPolygonClick={navController.navigate("polygon")},
                 onShapeClick={navController.navigate("shape")},
+                onPolylineClick={navController.navigate("polyline")},
+                onCurveClick={navController.navigate("curve")},
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -161,6 +167,20 @@ fun MyApp() {
         }
         composable("shape") {
             ShapeScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        composable("polyline") {
+            PolylineScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        composable("curve") {
+             CurveScreen(
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState },
                 onBack = { navController.navigateUp() }

@@ -30,6 +30,8 @@ fun ToolboxScreen(
     onViewClick: () -> Unit,
     onPolygonClick: () -> Unit,
     onShapeClick: () -> Unit,
+    onPolylineClick: () -> Unit,
+    onCurveClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -103,9 +105,9 @@ fun ToolboxScreen(
                     items = listOf(
                         // All icons are now the specific drawable resources
                         ToolboxItem("polygon", R.drawable.polygon, onClick = onPolygonClick),
-                        ToolboxItem("polyline", R.drawable.polyline, onClick = { /* TODO: Handle polyline */ }),
+                        ToolboxItem("polyline", R.drawable.polyline, onClick = onPolylineClick),
                         ToolboxItem("shape", R.drawable.shape, onClick = onShapeClick),
-                        ToolboxItem("curve", R.drawable.curve, onClick = { /* TODO: Handle curve */ }),
+                        ToolboxItem("curve", R.drawable.curve, onClick = onCurveClick),
                     )
                 )
             }
