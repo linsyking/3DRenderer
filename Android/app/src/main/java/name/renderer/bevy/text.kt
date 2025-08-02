@@ -108,6 +108,7 @@ fun DraggableResizableTextBox(
  * The main composable function for the TextScreen.
  * This version holds all state internally and does not receive external parameters.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextScreen(
     appState: AppState, // Receives the app state.
@@ -115,6 +116,9 @@ fun TextScreen(
     onBack: () -> Unit, // Callback to go back to the main page.
 ) {
     val insets = WindowInsets.systemBars.asPaddingValues()
+
+    // State to control the visibility of the color picker dialog
+    var showColorPickerDialog by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
@@ -127,25 +131,17 @@ fun TextScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header with a back button.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back),
-                        contentDescription = "返回"
-                    )
+            TopAppBar(
+                title = { Text("Text Edit") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back),
+                            contentDescription = "Back"
+                        )
+                    }
                 }
-                Text(
-                    text = "文本编辑",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-            }
+            )
 
             // Main canvas for the 3D view and the text box.
             Box(
@@ -186,19 +182,19 @@ fun TextScreen(
             ) {
                 // Color property.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "color", modifier = Modifier.weight(1f))
+                    Text(text = "Color", modifier = Modifier.weight(1f))
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .background(appState.color, shape = RoundedCornerShape(4.dp))
                             .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
-                            .clickable { /* Handle color dialog here */ }
+                            .clickable { showColorPickerDialog = true }
                     )
                 }
 
                 // Opacity slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "opacity", modifier = Modifier.weight(1f))
+                    Text(text = "Opacity", modifier = Modifier.weight(1f))
                     Slider(
                         value = appState.opacity,
                         onValueChange = { onUpdateAppState(appState.copy(opacity = it)) },
@@ -209,7 +205,7 @@ fun TextScreen(
 
                 // Font and style.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "font", modifier = Modifier.weight(1f))
+                    Text(text = "Font", modifier = Modifier.weight(1f))
                     Row(modifier = Modifier.weight(3f)) {
                         Text(text = "Times", modifier = Modifier.align(Alignment.CenterVertically))
                         Spacer(Modifier.width(8.dp))
@@ -217,7 +213,7 @@ fun TextScreen(
                         IconButton(onClick = { onUpdateAppState(appState.copy(isBold = !appState.isBold)) }) {
                             Icon(
                                 painterResource(id = R.drawable.bold),
-                                contentDescription = "加粗",
+                                contentDescription = "Bold",
                                 tint = if (appState.isBold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -225,7 +221,7 @@ fun TextScreen(
                         IconButton(onClick = { onUpdateAppState(appState.copy(isItalic = !appState.isItalic)) }) {
                             Icon(
                                 painterResource(id = R.drawable.italic),
-                                contentDescription = "斜体",
+                                contentDescription = "Italic",
                                 tint = if (appState.isItalic) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -233,7 +229,7 @@ fun TextScreen(
                         IconButton(onClick = { onUpdateAppState(appState.copy(isUnderlined = !appState.isUnderlined)) }) {
                             Icon(
                                 painterResource(id = R.drawable.underline),
-                                contentDescription = "下划线",
+                                contentDescription = "Underline",
                                 tint = if (appState.isUnderlined) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -242,7 +238,7 @@ fun TextScreen(
 
                 // Alignment.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "alignment", modifier = Modifier.weight(1f))
+                    Text(text = "Alignment", modifier = Modifier.weight(1f))
                     Row(
                         modifier = Modifier.weight(3f),
                         horizontalArrangement = Arrangement.SpaceAround
@@ -250,21 +246,21 @@ fun TextScreen(
                         IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Left)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_left),
-                                contentDescription = "左对齐",
+                                contentDescription = "Align Left",
                                 tint = if (appState.alignment == TextAlign.Left) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                         IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Center)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_center),
-                                contentDescription = "居中对齐",
+                                contentDescription = "Align Center",
                                 tint = if (appState.alignment == TextAlign.Center) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                         IconButton(onClick = { onUpdateAppState(appState.copy(alignment = TextAlign.Right)) }) {
                             Icon(
                                 painterResource(id = R.drawable.align_right),
-                                contentDescription = "右对齐",
+                                contentDescription = "Align Right",
                                 tint = if (appState.alignment == TextAlign.Right) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -273,7 +269,7 @@ fun TextScreen(
 
                 // Line height slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "line spacing", modifier = Modifier.weight(1f))
+                    Text(text = "Line spacing", modifier = Modifier.weight(1f))
                     Slider(
                         value = appState.lineHeight,
                         onValueChange = { onUpdateAppState(appState.copy(lineHeight = it)) },
@@ -281,6 +277,18 @@ fun TextScreen(
                         valueRange = 0.5f..2.0f
                     )
                 }
+            }
+
+            // Display the color picker dialog if showColorPickerDialog is true
+            if (showColorPickerDialog) {
+                ColorPickerDialog(
+                    currentColor = appState.color,
+                    onColorSelected = { newColor ->
+                        onUpdateAppState(appState.copy(color = newColor))
+                        showColorPickerDialog = false
+                    },
+                    onDismiss = { showColorPickerDialog = false }
+                )
             }
         }
     }
