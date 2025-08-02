@@ -31,7 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlin.math.roundToInt
 
-// 应用程序的状态数据类
+// Application state data class
 data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
@@ -46,10 +46,16 @@ data class AppState(
     val color: Color = Color.Black,
     val opacity: Float = 1.0f,
     val metallic: Float = 0.0f,
-    val roughness: Float = 0.5f
+    val roughness: Float = 0.5f,
+    // New settings properties from the user's sketch
+    val canvasWidth: Float = 1200f,
+    val canvasHeight: Float = 800f,
+    val backgroundColor: Color = Color.White,
+    val environmentLightColor: Color = Color.White,
+    val environmentLightStrength: Float = 0.5f
 )
 
-// BevySurfaceView 的全局变量，用于在不同 Composable 之间共享
+// Global variable for BevySurfaceView to share across Composables
 var surfaceView: BevySurfaceView? = null
 
 class MainActivity : ComponentActivity() {
@@ -64,7 +70,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    // 顶层状态，通过回调函数传递给子 Composable
+    // Top-level state, passed down to child Composables via callbacks
     var appState by remember { mutableStateOf(AppState()) }
 
     NavHost(
@@ -82,7 +88,11 @@ fun MyApp() {
             )
         }
         composable("settings") {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.popBackStack() }
+            )
         }
         composable("toolbox") {
             ToolboxScreen(
@@ -118,7 +128,7 @@ fun MyApp() {
     }
 }
 
-// 主界面的 SurfaceCard
+// The main surface card of the application
 @Composable
 fun SurfaceCard(
     navController: NavHostController,
@@ -218,7 +228,7 @@ fun SurfaceCard(
     }
 }
 
-// 静态文本框，用于在主界面显示文本
+// Static text box to display text on the main screen
 @Composable
 fun StaticTextBox(
     state: AppState
