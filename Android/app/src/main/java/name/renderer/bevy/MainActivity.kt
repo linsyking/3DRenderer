@@ -89,6 +89,7 @@ fun MyApp() {
                 onBack = { navController.navigateUp() },
                 onEditClick = { navController.navigate("edit") },
                 onTextClick = { navController.navigate("text") },
+                onTransformClick = { navController.navigate("transform") },
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -102,6 +103,13 @@ fun MyApp() {
         }
         composable("text") {
             TextScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
+        composable("transform") {
+            TransformScreen(
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState },
                 onBack = { navController.navigateUp() }

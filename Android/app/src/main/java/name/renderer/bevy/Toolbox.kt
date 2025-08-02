@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
  *
  * @param onBack A callback function to handle navigating back from this screen.
  * @param onEditClick A callback function to handle navigating to the EditScreen.
- * @param onTextClick A callback function to handle navigating to the TextScreen.
+ * @param @param onTextClick A callback function to handle navigating to the TextScreen.
  * @param appState The current state of the application.
  * @param onUpdateAppState A callback function to update the application state.
  */
@@ -24,6 +24,7 @@ fun ToolboxScreen(
     onBack: () -> Unit,
     onEditClick: () -> Unit,
     onTextClick: () -> Unit,
+    onTransformClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -88,7 +89,7 @@ fun ToolboxScreen(
                         // All icons are now the specific drawable resources
                         ToolboxItem("text", R.drawable.text, onClick = onTextClick),
                         ToolboxItem("light", R.drawable.light, onClick = { /* TODO: Handle light */ }),
-                        ToolboxItem("transform", R.drawable.transform, onClick = { /* TODO: Handle transform */ }),
+                        ToolboxItem("transform", R.drawable.transform, onClick = onTransformClick),
                     )
                 )
 

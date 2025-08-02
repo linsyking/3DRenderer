@@ -186,7 +186,7 @@ fun TextScreen(
             ) {
                 // Color property.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "颜色", modifier = Modifier.weight(1f))
+                    Text(text = "color", modifier = Modifier.weight(1f))
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -198,7 +198,7 @@ fun TextScreen(
 
                 // Opacity slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "不透明度", modifier = Modifier.weight(1f))
+                    Text(text = "opacity", modifier = Modifier.weight(1f))
                     Slider(
                         value = appState.opacity,
                         onValueChange = { onUpdateAppState(appState.copy(opacity = it)) },
@@ -209,7 +209,7 @@ fun TextScreen(
 
                 // Font and style.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "字体", modifier = Modifier.weight(1f))
+                    Text(text = "font", modifier = Modifier.weight(1f))
                     Row(modifier = Modifier.weight(3f)) {
                         Text(text = "Times", modifier = Modifier.align(Alignment.CenterVertically))
                         Spacer(Modifier.width(8.dp))
@@ -242,7 +242,7 @@ fun TextScreen(
 
                 // Alignment.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "对齐方式", modifier = Modifier.weight(1f))
+                    Text(text = "alignment", modifier = Modifier.weight(1f))
                     Row(
                         modifier = Modifier.weight(3f),
                         horizontalArrangement = Arrangement.SpaceAround
@@ -273,7 +273,7 @@ fun TextScreen(
 
                 // Line height slider.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "行间距", modifier = Modifier.weight(1f))
+                    Text(text = "line spacing", modifier = Modifier.weight(1f))
                     Slider(
                         value = appState.lineHeight,
                         onValueChange = { onUpdateAppState(appState.copy(lineHeight = it)) },
