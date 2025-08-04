@@ -153,18 +153,18 @@ fun SettingsScreen(
                 }
 
                 // Environment Light Strength slider
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Env. light strength", modifier = Modifier.weight(1f))
-                    Slider(
-                        value = appState.environmentLightStrength,
-                        onValueChange = { onUpdateAppState(appState.copy(environmentLightStrength = it)) },
-                        modifier = Modifier.weight(3f),
-                        valueRange = 0f..1f
-                    )
-                }
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text(text = "Env. light strength", modifier = Modifier.weight(1f))
+//                    Slider(
+//                        value = appState.environmentLightStrength,
+//                        onValueChange = { onUpdateAppState(appState.copy(environmentLightStrength = it)) },
+//                        modifier = Modifier.weight(3f),
+//                        valueRange = 0f..1f
+//                    )
+//                }
             }
 
             // Display the color picker dialog if showColorPickerDialog is true

@@ -36,14 +36,22 @@ pub fn create_bevy_app(
     asset_manager: jobject,
     surface: jobject,
     scale_factor: jfloat,
+    bg_r: jfloat,
+    bg_g: jfloat,
+    bg_b: jfloat,
+    l_r: jfloat,
+    l_g: jfloat,
+    l_b: jfloat
 ) -> jlong {
     let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env as _, asset_manager) };
     let android_obj = AndroidViewObj {
         native_window: NativeWindow::new(env, surface),
         scale_factor: scale_factor as _,
     };
+    let bg_color = Color::srgb(bg_r as f32, bg_g as f32, bg_b as f32);
+    let light_color = Color::srgb(l_r as f32, l_g as f32, l_b as f32);
 
-    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager));
+    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color);
     bevy_app.insert_non_send_resource(android_obj);
     crate::app_view::create_bevy_window(&mut bevy_app);
     log::info!("Bevy App created!");
@@ -97,15 +105,6 @@ pub fn device_exit_touch(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     crate::change_touch(app, None);
     crate::change_last_touch(app, None);
 }
-
-
-#[unsafe(no_mangle)]
-#[jni_fn("name.renderer.bevy.RustBridge")]
-pub fn change_background_color(_env: *mut JNIEnv, _: jobject, obj: jlong, r: jfloat, g: jfloat, b: jfloat) {
-    let app = unsafe { &mut *(obj as *mut App) };
-    crate::change_bcolor(app, r as f32, g as f32, b as f32);
-}
-
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]

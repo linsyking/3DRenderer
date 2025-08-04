@@ -33,6 +33,8 @@ mod stepping;
 #[allow(unused_variables)]
 pub fn create_breakout_app(
     #[cfg(target_os = "android")] android_asset_manager: android_asset_io::AndroidAssetManager,
+    bg_color: Color,
+    light_color: Color,
 ) -> App {
     #[allow(unused_imports)]
     use bevy::winit::WinitPlugin;
@@ -81,7 +83,7 @@ pub fn create_breakout_app(
             .add_before::<bevy::asset::AssetPlugin>(android_asset_io::AndroidAssetIoPlugin);
     }
     bevy_app
-        .insert_resource(ClearColor(Color::srgb(1.0, 1.0, 1.0)))
+        .insert_resource(ClearColor(bg_color))
         .add_plugins(default_plugins);
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -89,7 +91,9 @@ pub fn create_breakout_app(
 
     // bevy_app.add_plugins(breakout_game::BreakoutGamePlugin);
     // bevy_app.add_plugins(lighting_demo::LightingDemoPlugin);
-    bevy_app.add_plugins(scene3d::Scene3DPlugin);
+    bevy_app.add_plugins(scene3d::Scene3DPlugin {
+        env_lightcolor: light_color,
+    });
     // bevy_app.add_plugins(shapes_demo::ShapesDemoPlugin);
 
     // In this scenario, need to call the setup() of the plugins that have been registered

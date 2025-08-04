@@ -81,13 +81,20 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
             if (bevy_app == Long.MAX_VALUE) {
                 // Get the screen's density scale
                 val scaleFactor: Float = resources.displayMetrics.density
-                bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor)
-            }
+                // Configure Canvas
+                globalAppState?.let { appState ->
+                    val bg = appState.backgroundColor
+                    val t = appState.environmentLightColor
+                    bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor,
+                        bg.red,
+                        bg.green,
+                        bg.blue,
+                        t.red,
+                        t.green,
+                        t.blue
+                        )
+                }
 
-            // Configure Canvas
-            globalAppState?.let { appState ->
-                val bg = appState.backgroundColor
-                RustBridge.change_background_color(bevy_app, bg.red, bg.green, bg.blue)
             }
 
             // SurfaceView 默认不会自动开始绘制，setWillNotDraw(false) 用于通知 App 已经准备好开始绘制了。
