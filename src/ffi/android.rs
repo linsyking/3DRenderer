@@ -83,6 +83,13 @@ pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y
 }
 
 
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn change_background_color(_env: *mut JNIEnv, _: jobject, obj: jlong, r: jfloat, g: jfloat, b: jfloat) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_bcolor(app, r as f32, g as f32, b as f32);
+}
+
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]

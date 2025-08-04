@@ -112,6 +112,13 @@ pub(crate) fn change_touch(app: &mut App, x: f32, y: f32) {
     touch_input.touch_delta = Some(Vec2::new(x, y));
 }
 
+pub(crate) fn change_bcolor(app: &mut App, r: f32, g: f32, b: f32) {
+    // Change the background color of the app
+    let mut clear_color = app.world_mut().resource_mut::<ClearColor>();
+    clear_color.0 = Color::srgb(r, g, b);
+    log::info!("Change background color to: ({}, {}, {})", r, g, b);
+}
+
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub(crate) fn change_input(app: &mut App, key_code: KeyCode, state: ButtonState) {
     let mut windows_system_state: SystemState<Query<(Entity, &mut Window)>> =

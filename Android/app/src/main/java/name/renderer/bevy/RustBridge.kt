@@ -4,7 +4,8 @@ import android.view.Surface
 import android.content.Context
 import android.content.res.AssetManager
 
-class RustBridge {
+
+object RustBridge {
     init {
         System.loadLibrary("bevy_in_app")
     }
@@ -15,4 +16,5 @@ class RustBridge {
     external fun device_motion(bevy_app: Long, x: Float, y: Float, z: Float)
     external fun device_touch_move(bevy_app: Long, x: Float, y: Float)
     external fun release_bevy_app(bevy_app: Long)
+    external fun change_background_color(bevy_app: Long, r: Float, g: Float, b: Float)
 }

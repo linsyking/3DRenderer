@@ -88,11 +88,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+var globalAppState : AppState ? = null
+
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
     // Top-level state, passed down to child Composables via callbacks
     var appState by remember { mutableStateOf(AppState()) }
+    globalAppState = appState
 
     NavHost(
         navController = navController, startDestination = "main",

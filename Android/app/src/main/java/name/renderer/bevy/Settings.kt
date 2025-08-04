@@ -1,5 +1,6 @@
 package name.renderer.bevy
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -177,8 +178,12 @@ fun SettingsScreen(
                     currentColor = currentColor,
                     onColorSelected = { newColor ->
                         when (selectedColorTarget) {
-                            ColorTarget.BackgroundColor -> onUpdateAppState(appState.copy(backgroundColor = newColor))
-                            ColorTarget.EnvironmentLight -> onUpdateAppState(appState.copy(environmentLightColor = newColor))
+                            ColorTarget.BackgroundColor -> {
+                                onUpdateAppState(appState.copy(backgroundColor = newColor))
+                            }
+                            ColorTarget.EnvironmentLight -> {
+                                onUpdateAppState(appState.copy(environmentLightColor = newColor))
+                            }
                             else -> {}
                         }
                         showColorPickerDialog = false
