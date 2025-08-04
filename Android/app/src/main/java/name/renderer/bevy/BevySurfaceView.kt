@@ -91,7 +91,8 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                         bg.blue,
                         t.red,
                         t.green,
-                        t.blue
+                        t.blue,
+                        appState.environmentLightStrength
                         )
                 }
 

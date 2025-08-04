@@ -57,7 +57,7 @@ data class AppState(
     val canvasHeight: Float = 800f,
     val backgroundColor: Color = Color.White,
     val environmentLightColor: Color = Color.White,
-    val environmentLightStrength: Float = 0.5f,
+    val environmentLightStrength: Float = 0.01f,
     val fontName: String = "Times",
     val viewScale: Float = 1.0f,
     val viewOffsetX: Float = 0f,

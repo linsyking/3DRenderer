@@ -41,7 +41,8 @@ pub fn create_bevy_app(
     bg_b: jfloat,
     l_r: jfloat,
     l_g: jfloat,
-    l_b: jfloat
+    l_b: jfloat,
+    ms: jfloat,
 ) -> jlong {
     let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env as _, asset_manager) };
     let android_obj = AndroidViewObj {
@@ -51,7 +52,7 @@ pub fn create_bevy_app(
     let bg_color = Color::srgb(bg_r as f32, bg_g as f32, bg_b as f32);
     let light_color = Color::srgb(l_r as f32, l_g as f32, l_b as f32);
 
-    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color);
+    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, ms as f32);
     bevy_app.insert_non_send_resource(android_obj);
     crate::app_view::create_bevy_window(&mut bevy_app);
     log::info!("Bevy App created!");

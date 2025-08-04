@@ -35,6 +35,7 @@ pub fn create_breakout_app(
     #[cfg(target_os = "android")] android_asset_manager: android_asset_io::AndroidAssetManager,
     bg_color: Color,
     light_color: Color,
+    move_strength: f32,
 ) -> App {
     #[allow(unused_imports)]
     use bevy::winit::WinitPlugin;
@@ -93,6 +94,7 @@ pub fn create_breakout_app(
     // bevy_app.add_plugins(lighting_demo::LightingDemoPlugin);
     bevy_app.add_plugins(scene3d::Scene3DPlugin {
         env_lightcolor: light_color,
+        move_strength: move_strength,
     });
     // bevy_app.add_plugins(shapes_demo::ShapesDemoPlugin);
 
@@ -119,13 +121,6 @@ pub(crate) fn change_touch(app: &mut App, pos: Option<Vec2>) {
 pub(crate) fn change_last_touch(app: &mut App, pos: Option<Vec2>) {
     let mut touch_input = app.world_mut().resource_mut::<LastTouchInput>();
     touch_input.touch = pos;
-}
-
-pub(crate) fn change_bcolor(app: &mut App, r: f32, g: f32, b: f32) {
-    // Change the background color of the app
-    let mut clear_color = app.world_mut().resource_mut::<ClearColor>();
-    clear_color.0 = Color::srgb(r, g, b);
-    log::info!("Change background color to: ({}, {}, {})", r, g, b);
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]

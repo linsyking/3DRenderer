@@ -22,10 +22,12 @@ struct OrbitCamera {
 #[derive(Resource)]
 pub struct MyPluginConfig {
     pub env_lightcolor: Color,
+    pub move_strength: f32,
 }
 
 pub struct Scene3DPlugin {
     pub env_lightcolor: Color,
+    pub move_strength: f32,
 }
 
 impl Plugin for Scene3DPlugin {
@@ -34,6 +36,7 @@ impl Plugin for Scene3DPlugin {
             .insert_resource(LastTouchInput::default())
             .insert_resource(MyPluginConfig {
                 env_lightcolor: self.env_lightcolor,
+                move_strength: self.move_strength,
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -83,12 +86,13 @@ fn move_camera(
     input: Res<TouchInput>,
     mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
+    config: Res<MyPluginConfig>
 ) {
     if let Some(cpos) = input.touch {
         if let Some(lastpos) = lastinput.touch {
             let delta = cpos - lastpos;
             for mut transform in &mut query {
-                let rotate_speed = 0.01;
+                let rotate_speed = config.move_strength;
 
                 orbit.azimuth -= delta.x * rotate_speed;
                 orbit.elevation += delta.y * rotate_speed;
