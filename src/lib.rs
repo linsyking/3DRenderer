@@ -30,6 +30,9 @@ mod shapes_demo;
 mod scene3d;
 mod stepping;
 
+mod export;
+mod geometry;
+
 #[allow(unused_variables)]
 pub fn create_breakout_app(
     #[cfg(target_os = "android")] android_asset_manager: android_asset_io::AndroidAssetManager,

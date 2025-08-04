@@ -323,6 +323,7 @@ dependencies = [
  "bevy_platform",
  "bevy_tasks",
  "core-graphics 0.25.0",
+ "glam 0.30.5",
  "jni",
  "jni_fn",
  "libc",
@@ -331,6 +332,7 @@ dependencies = [
  "ndk 0.9.0",
  "ndk-context",
  "ndk-sys 0.6.0+11769913",
+ "obj-exporter",
  "objc",
  "raw-window-handle",
  "uuid",
@@ -835,7 +837,7 @@ dependencies = [
  "approx",
  "bevy_reflect",
  "derive_more",
- "glam",
+ "glam 0.29.3",
  "itertools 0.14.0",
  "libm",
  "rand",
@@ -877,7 +879,7 @@ version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bb60c753b968a2de0fd279b76a3d19517695e771edb4c23575c7f92156315de"
 dependencies = [
- "glam",
+ "glam 0.29.3",
 ]
 
 [[package]]
@@ -979,7 +981,7 @@ dependencies = [
  "downcast-rs",
  "erased-serde",
  "foldhash",
- "glam",
+ "glam 0.29.3",
  "petgraph",
  "serde",
  "smallvec",
@@ -1925,7 +1927,7 @@ checksum = "b0a05902cf601ed11d564128448097b98ebe3c6574bd7b6a653a3d56d54aa020"
 dependencies = [
  "const_panic",
  "encase_derive",
- "glam",
+ "glam 0.29.3",
  "thiserror 1.0.69",
 ]
 
@@ -2244,6 +2246,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glam"
+version = "0.30.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2d1aab06663bdce00d6ca5e5ed586ec8d18033a771906c993a1e3755b368d85"
+
+[[package]]
 name = "glob"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2433,7 +2441,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c9e718d32b6e6b2b32354e1b0367025efdd0b11d6a740b905ddf5db1074679"
 dependencies = [
  "constgebra",
- "glam",
+ "glam 0.29.3",
  "tinyvec",
 ]
 
@@ -2986,6 +2994,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "obj-exporter"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d133460dfa7bb530c954eb6c98c4c4ac983cc2ec70840f3a9cf9bf6cf3bee824"
+dependencies = [
+ "lazy_static",
+ "wavefront_obj",
 ]
 
 [[package]]
@@ -4382,6 +4400,12 @@ checksum = "1a05d73b933a847d6cccdda8f838a22ff101ad9bf93e33684f39c1f5f0eece3d"
 dependencies = [
  "unicode-ident",
 ]
+
+[[package]]
+name = "wavefront_obj"
+version = "5.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33c9cbb65c5aac6493000cdabe11f49588d19b547ccd7501f44fc96a6b9406ff"
 
 [[package]]
 name = "web-sys"
