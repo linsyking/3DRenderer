@@ -19,15 +19,15 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
-use crate::scene3d::TouchInput;
+use crate::scene3d::{LastTouchInput, TouchInput};
 
 #[cfg(target_os = "android")]
 mod android_asset_io;
 
 mod breakout_game;
 mod lighting_demo;
-mod shapes_demo;
 mod scene3d;
+mod shapes_demo;
 mod stepping;
 
 #[allow(unused_variables)]
@@ -107,9 +107,14 @@ pub fn create_breakout_app(
     bevy_app
 }
 
-pub(crate) fn change_touch(app: &mut App, x: f32, y: f32) {
+pub(crate) fn change_touch(app: &mut App, pos: Option<Vec2>) {
     let mut touch_input = app.world_mut().resource_mut::<TouchInput>();
-    touch_input.touch_delta = Some(Vec2::new(x, y));
+    touch_input.touch = pos;
+}
+
+pub(crate) fn change_last_touch(app: &mut App, pos: Option<Vec2>) {
+    let mut touch_input = app.world_mut().resource_mut::<LastTouchInput>();
+    touch_input.touch = pos;
 }
 
 pub(crate) fn change_bcolor(app: &mut App, r: f32, g: f32, b: f32) {

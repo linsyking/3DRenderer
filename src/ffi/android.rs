@@ -79,7 +79,23 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
     let app = unsafe { &mut *(obj as *mut App) };
-    crate::change_touch(app, x as f32, y as f32);
+    crate::change_touch(app, Some(vec2(x as f32, y as f32)));
+}
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn device_enter_touch(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_touch(app, Some(vec2(x as f32, y as f32)));
+    crate::change_last_touch(app, Some(vec2(x as f32, y as f32)));
+}
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn device_exit_touch(_env: *mut JNIEnv, _: jobject, obj: jlong) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_touch(app, None);
+    crate::change_last_touch(app, None);
 }
 
 

@@ -17,7 +17,6 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var ndk_inited = false
     private var sensorManager: SensorManager? = null
     private var mSensor: Sensor? = null
-    private var lastTouchPos : Pair<Float, Float> = Pair(0.0f, 0.0f)
     private var sensorValues: FloatArray = FloatArray(3)
 
     constructor(context: Context) : super(context) {
@@ -46,23 +45,24 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
 //                Log.d("Touch", "ACTION_DOWN at: " + event.x + ", " + event.y)
-                lastTouchPos = Pair(event.x, event.y)
+                if (bevy_app != Long.MAX_VALUE) {
+                    RustBridge.device_enter_touch(bevy_app, event.x , event.y )
+                }
                 return true
             }
 
             MotionEvent.ACTION_MOVE -> {
 //                Log.d("Touch", "ACTION_MOVE at: " + event.x + ", " + event.y)
                 if (bevy_app != Long.MAX_VALUE) {
-                    RustBridge.device_touch_move(bevy_app, event.x - lastTouchPos.first, event.y - lastTouchPos.second)
+                    RustBridge.device_touch_move(bevy_app, event.x , event.y )
                 }
-                lastTouchPos = Pair(event.x, event.y)
                 return true
             }
 
             MotionEvent.ACTION_UP -> {
 //                Log.d("Touch", "ACTION_UP at: " + event.x + ", " + event.y)
                 if (bevy_app != Long.MAX_VALUE) {
-                    RustBridge.device_touch_move(bevy_app, 0.0f, 0.0f)
+                    RustBridge.device_exit_touch(bevy_app)
                 }
                 return true
             }

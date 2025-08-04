@@ -4,7 +4,12 @@ use bevy::prelude::*;
 
 #[derive(Resource, Default)]
 pub struct TouchInput {
-    pub touch_delta: Option<Vec2>,
+    pub touch: Option<Vec2>,
+}
+
+#[derive(Resource, Default)]
+pub struct LastTouchInput {
+    pub touch: Option<Vec2>,
 }
 
 #[derive(Resource)]
@@ -18,6 +23,7 @@ pub struct Scene3DPlugin;
 impl Plugin for Scene3DPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TouchInput::default())
+            .insert_resource(LastTouchInput::default())
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
                 elevation: 0.0,
@@ -66,30 +72,37 @@ fn setup(
 fn move_camera(
     mut query: Query<&mut Transform, With<Camera3d>>,
     input: Res<TouchInput>,
+    mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
 ) {
-    if let Some(delta) = input.touch_delta {
-        for mut transform in &mut query {
-            let rotate_speed = 0.01;
+    if let Some(cpos) = input.touch {
+        if let Some(lastpos) = lastinput.touch {
+            let delta = cpos - lastpos;
 
-            orbit.azimuth -= delta.x * rotate_speed;
-            orbit.elevation += delta.y * rotate_speed;
+            for mut transform in &mut query {
+                let rotate_speed = 0.01;
 
-            // Clamp elevation to avoid flipping
-            orbit.elevation = orbit.elevation.clamp(
-                -std::f32::consts::FRAC_PI_2 + 0.01,
-                std::f32::consts::FRAC_PI_2 - 0.01,
-            );
+                orbit.azimuth -= delta.x * rotate_speed;
+                orbit.elevation += delta.y * rotate_speed;
 
-            // Convert spherical coordinates to cartesian
-            let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin();
-            let y = orbit.radius * orbit.elevation.sin();
-            let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos();
+                // Clamp elevation to avoid flipping
+                orbit.elevation = orbit.elevation.clamp(
+                    -std::f32::consts::FRAC_PI_2 + 0.01,
+                    std::f32::consts::FRAC_PI_2 - 0.01,
+                );
 
-            let position = Vec3::new(x, y, z);
-            let target = Vec3::ZERO;
-            transform.translation = position;
-            transform.look_at(target, Vec3::Y);
+                // Convert spherical coordinates to cartesian
+                let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin();
+                let y = orbit.radius * orbit.elevation.sin();
+                let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos();
+
+                let position = Vec3::new(x, y, z);
+                let target = Vec3::ZERO;
+                transform.translation = position;
+                transform.look_at(target, Vec3::Y);
+            }
         }
+        // Update last touch input
+        lastinput.touch = Some(cpos);
     }
 }
