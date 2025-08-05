@@ -8,6 +8,7 @@ use jni::objects::JString;
 use jni::sys::{jfloat, jlong, jobject, jstring};
 use jni_fn::jni_fn;
 use log::LevelFilter;
+use crate::AppInitOpts;
 
 #[link(name = "c++_shared")]
 unsafe extern "C" {}
@@ -50,7 +51,7 @@ pub fn create_bevy_app(
         .expect("Failed to get string")
         .into();
     
-    log::info!("Creating Bevy App with options: {}", rust_str);
+    // log::info!("Creating Bevy App with options: {}", rust_str);
     let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env.get_native_interface() as _, asset_manager) };
 
     let android_obj = AndroidViewObj {
@@ -58,10 +59,16 @@ pub fn create_bevy_app(
         scale_factor: scale_factor as _,
     };
 
-    let bg_color = Color::srgb(1., 1., 1.);
-    let light_color = Color::srgb(1., 1., 1.);
 
-    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, 0.01);
+    let state: AppInitOpts = serde_json::from_str(rust_str.as_str()).unwrap();
+
+    let bg = state.background_color;
+    let bg_color = Color::srgb(bg[0], bg[1], bg[2]);
+    let light = state.light_color;
+    let light_color = Color::srgb(light[0], light[1], light[2]);
+    let move_strength = state.move_strength;
+
+    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, move_strength);
     bevy_app.insert_non_send_resource(android_obj);
     crate::app_view::create_bevy_window(&mut bevy_app);
     log::info!("Bevy App created!");

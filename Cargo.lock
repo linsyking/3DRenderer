@@ -333,6 +333,8 @@ dependencies = [
  "ndk-sys 0.6.0+11769913",
  "objc",
  "raw-window-handle",
+ "serde",
+ "serde_json",
  "uuid",
  "wgpu",
 ]

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use serde::Deserialize;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use bevy::ecs::{
@@ -33,8 +34,13 @@ mod stepping;
 
 #[derive(Deserialize, Debug)]
 struct AppInitOpts {
-    bg_color: String,
-    light_color: f32,
+    #[serde(rename = "backgroundColor")]
+    background_color: Vec<f32>,
+
+    #[serde(rename = "environmentLightColor")]
+    light_color: Vec<f32>,
+
+    #[serde(rename = "moveStrength")]
     move_strength: f32,
 }
 
