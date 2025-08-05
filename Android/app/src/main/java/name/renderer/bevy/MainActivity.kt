@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -198,6 +199,7 @@ fun SurfaceCard(
     appState: AppState,
     onUpdateAppState: (AppState) -> Unit
 ) {
+    val context = LocalContext.current
     val insets = WindowInsets.systemBars.asPaddingValues()
     var expanded by remember { mutableStateOf(false) }
 
@@ -207,8 +209,14 @@ fun SurfaceCard(
         onResult = { uri: Uri? ->
             uri?.let {
                 // User has selected a file.
-                // TODO: Pass this URI to your Rust bridge to handle the file.
-                Log.i("import file", uri.toString())
+                val inputStream = context.contentResolver.openInputStream(uri)
+                surfaceView?.let {
+                    surfaceView ->
+                    inputStream?.let { inputStream ->
+                        val bytes = inputStream.readBytes()
+                        RustBridge.import_mesh(surfaceView.bevy_app, bytes)
+                    }
+                }
             }
         }
     )

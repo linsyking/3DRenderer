@@ -18,4 +18,6 @@ object RustBridge {
     external fun device_touch_move(bevy_app: Long, x: Float, y: Float)
     external fun device_exit_touch(bevy_app: Long)
     external fun release_bevy_app(bevy_app: Long)
+
+    external fun import_mesh(bevy_app: Long, file: ByteArray)
 }
