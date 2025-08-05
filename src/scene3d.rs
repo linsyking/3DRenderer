@@ -2,6 +2,11 @@
 
 use bevy::prelude::*;
 
+use crate::{
+    file_io::to_bevy_mesh,
+    geometry::{curvify, meshify},
+};
+
 #[derive(Resource, Default)]
 pub struct TouchInput {
     pub touch: Option<Vec2>,
@@ -32,6 +37,7 @@ pub struct MyPluginConfig {
     pub move_strength: f32,
     pub meshes: Vec<MeshConfig>,
     pub camera_pos: Vec<f32>,
+    pub sketch: bool, // Whether to use sketch mode
 }
 
 pub struct Scene3DPlugin {
@@ -50,6 +56,7 @@ impl Plugin for Scene3DPlugin {
                 move_strength: self.move_strength,
                 meshes: self.meshes.clone(),
                 camera_pos: self.camera_pos.clone(),
+                sketch: false,
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -90,7 +97,7 @@ fn setup(
     ));
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 0.0, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
     // Spawn meshes from the config
@@ -103,6 +110,22 @@ fn setup(
             meshconfig.transform.clone(),
         ));
     }
+
+    // Test curve mesh
+    let ps = vec![
+        glam::Vec3::new(-1.0, 0.0, 0.0),
+        glam::Vec3::new(-0.5, 0.0, 0.0),
+        glam::Vec3::new(1.0, 0.5, 0.0),
+    ];
+    let cc = curvify(&ps);
+    let mm = meshify(&cc, glam::Vec3::new(-2.5, 4.5, 9.0));
+    let rmm = to_bevy_mesh(&mm);
+
+    commands.spawn((
+        Mesh3d(meshes.add(rmm)),
+        MeshMaterial3d(materials.add(Color::srgb_u8(255, 0, 0))),
+        Transform::from_xyz(0.0, 0.0, 0.0),
+    ));
 }
 
 fn move_camera(
@@ -110,35 +133,47 @@ fn move_camera(
     input: Res<TouchInput>,
     mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
-    config: Res<MyPluginConfig>,
+    mut config: ResMut<MyPluginConfig>,
 ) {
-    if let Some(cpos) = input.touch {
-        if let Some(lastpos) = lastinput.touch {
-            let delta = cpos - lastpos;
-            for mut transform in &mut query {
-                let rotate_speed = config.move_strength;
+    if config.sketch {
+        // If sketch mode is enabled, we don't move the camera
 
-                orbit.azimuth -= delta.x * rotate_speed;
-                orbit.elevation += delta.y * rotate_speed;
-
-                // Clamp elevation to avoid flipping
-                orbit.elevation = orbit.elevation.clamp(
-                    -std::f32::consts::FRAC_PI_2 + 0.01,
-                    std::f32::consts::FRAC_PI_2 - 0.01,
-                );
-
-                // Convert spherical coordinates to cartesian
-                let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin();
-                let y = orbit.radius * orbit.elevation.sin();
-                let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos();
-
-                let position = Vec3::new(x, y, z);
-                let target = Vec3::ZERO;
-                transform.translation = position;
-                transform.look_at(target, Vec3::Y);
+        if let Some(cpos) = input.touch {
+            if let Some(lastpos) = lastinput.touch {
+                let delta = cpos - lastpos;
             }
+            lastinput.touch = Some(cpos);
         }
-        // Update last touch input
-        lastinput.touch = Some(cpos);
+        return;
+    } else {
+        if let Some(cpos) = input.touch {
+            if let Some(lastpos) = lastinput.touch {
+                let delta = cpos - lastpos;
+                for mut transform in &mut query {
+                    let rotate_speed = config.move_strength;
+
+                    orbit.azimuth -= delta.x * rotate_speed;
+                    orbit.elevation += delta.y * rotate_speed;
+
+                    // Clamp elevation to avoid flipping
+                    orbit.elevation = orbit.elevation.clamp(
+                        -std::f32::consts::FRAC_PI_2 + 0.01,
+                        std::f32::consts::FRAC_PI_2 - 0.01,
+                    );
+
+                    // Convert spherical coordinates to cartesian
+                    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin() + config.camera_pos[0];
+                    let y = orbit.radius * orbit.elevation.sin() + config.camera_pos[1];
+                    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos() + config.camera_pos[2];
+
+                    let position = Vec3::new(x, y, z);
+                    let target = Vec3::ZERO;
+                    transform.translation = position;
+                    transform.look_at(target, Vec3::Y);
+                }
+            }
+            // Update last touch input
+            lastinput.touch = Some(cpos);
+        }
     }
 }

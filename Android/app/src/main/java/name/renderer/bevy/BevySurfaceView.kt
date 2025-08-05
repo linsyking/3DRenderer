@@ -110,6 +110,7 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                 // Configure Canvas
                 globalAppState?.let { appState ->
                     val initopts = packAppInitOpts(appState)
+                    Log.i("camera", appState.scene.cameraPos.toString())
                     val json = Json.encodeToString(initopts)
                     bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, json)
                 }

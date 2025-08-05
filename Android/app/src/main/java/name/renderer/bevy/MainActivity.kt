@@ -2,6 +2,7 @@ package name.renderer.bevy
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -53,7 +54,7 @@ data class BObject(
 @Serializable
 data class Scene(
     val objects : List<BObject> = listOf(),
-    val cameraPos : List<Float> = listOf()
+    val cameraPos : List<Float> = listOf(0f, 0f, 1f)
 )
 
 // Final AppState data class with all properties
@@ -93,7 +94,7 @@ data class AppState(
     val polylineOpacity: Float = 1.0f,
     val curveColor: Color=Color.Blue,
     val curveOpacity: Float=1.0f,
-    val scene: Scene = Scene()
+    val scene: Scene = Scene(cameraPos = listOf(0f, 0f, 1f))
 )
 
 // Global variable for BevySurfaceView to share across Composables
