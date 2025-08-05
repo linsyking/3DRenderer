@@ -35,6 +35,17 @@ mod file_io;
 mod geometry;
 
 #[derive(Deserialize, Debug)]
+struct MeshConfig {
+    data: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct SceneConfig {
+    #[serde(default)]
+    meshes: Vec<MeshConfig>,
+}
+
+#[derive(Deserialize, Debug)]
 struct AppInitOpts {
     #[serde(rename = "backgroundColor")]
     background_color: Vec<f32>,
@@ -44,15 +55,17 @@ struct AppInitOpts {
 
     #[serde(rename = "moveStrength")]
     move_strength: f32,
+
+    scene: SceneConfig,
 }
 
 #[allow(unused_variables)]
 pub fn create_breakout_app(
     #[cfg(target_os = "android")] android_asset_manager: android_asset_io::AndroidAssetManager,
-    bg_color: Color,
-    light_color: Color,
-    move_strength: f32,
+    opts: AppInitOpts,
 ) -> App {
+    let bg = &opts.background_color;
+    let bg_color = Color::srgb(bg[0], bg[1], bg[2]);
     #[allow(unused_imports)]
     use bevy::winit::WinitPlugin;
 
@@ -108,10 +121,7 @@ pub fn create_breakout_app(
 
     // bevy_app.add_plugins(breakout_game::BreakoutGamePlugin);
     // bevy_app.add_plugins(lighting_demo::LightingDemoPlugin);
-    bevy_app.add_plugins(scene3d::Scene3DPlugin {
-        env_lightcolor: light_color,
-        move_strength: move_strength,
-    });
+    bevy_app.add_plugins(to_plugin_opts(opts));
     // bevy_app.add_plugins(shapes_demo::ShapesDemoPlugin);
 
     // In this scenario, need to call the setup() of the plugins that have been registered
@@ -127,6 +137,34 @@ pub fn create_breakout_app(
     }
 
     bevy_app
+}
+
+pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
+    let mut meshes = vec![];
+    for mesh_config in opts.scene.meshes {
+        let mesh_data = mesh_config.data;
+        let res = file_io::load_obj(mesh_data).unwrap();
+        let mymesh = file_io::to_bevy_mesh(&res);
+        meshes.push(mymesh);
+    }
+    // let output_obj = file_io::export_obj_to_string(&res);
+    // log::info!("OBJ Exported: {}", output_obj);
+    // app.world_mut().insert_resource(SpawnMesh {
+    //     mesh: String::from("test"),
+    // });
+    // let mut touch_input = app.world_mut().resource_mut::<SpawnMesh>();
+    // touch_input.mesh = String::from("test22");
+    // log::info!("Import mesh data size: {}", data.meshes.len());
+
+    let light = opts.light_color;
+    let env_lightcolor = Color::srgb(light[0], light[1], light[2]);
+    let move_strength = opts.move_strength;
+
+    scene3d::Scene3DPlugin {
+        env_lightcolor: env_lightcolor,
+        move_strength: move_strength,
+        meshes: meshes,
+    }
 }
 
 pub(crate) fn change_touch(app: &mut App, pos: Option<Vec2>) {

@@ -1,24 +1,67 @@
-use std::fs::File;
-use std::io::{Write, BufWriter};
-use crate::geometry::Mesh;
-use std::path::Path;
+use crate::geometry::Mesh as GMesh;
+use bevy::asset::RenderAssetUsages;
 use glam::{Vec2, Vec3};
+use std::fmt::Write;
 use tobj::{self, LoadOptions};
 
-pub fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
-    let file = File::create(path)?;
-    let mut writer = BufWriter::new(file);
+use bevy::render::mesh::{Indices, Mesh, VertexAttributeValues};
+use bevy::render::render_resource::PrimitiveTopology;
+
+pub fn to_bevy_mesh(mesh: &GMesh) -> Mesh {
+    let mut bevy_mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::MAIN_WORLD,
+    );
+
+    // Convert positions to Vec<[f32; 3]>
+    let positions: Vec<[f32; 3]> = mesh.positions.iter().map(|v| [v.x, v.y, v.z]).collect();
+
+    // Normals are optional
+    let normals: Option<Vec<[f32; 3]>> = if !mesh.normals.is_empty() {
+        Some(mesh.normals.iter().map(|n| [n.x, n.y, n.z]).collect())
+    } else {
+        None
+    };
+
+    // UVs are optional
+    let uvs: Option<Vec<[f32; 2]>> = if !mesh.uvs.is_empty() {
+        Some(mesh.uvs.iter().map(|uv| [uv.x, uv.y]).collect())
+    } else {
+        None
+    };
+
+    // Set vertex attributes
+    bevy_mesh.insert_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        VertexAttributeValues::from(positions),
+    );
+    if let Some(n) = normals {
+        bevy_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, VertexAttributeValues::from(n));
+    }
+    if let Some(t) = uvs {
+        bevy_mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, VertexAttributeValues::from(t));
+    }
+
+    // Set indices
+    let indices: Vec<u32> = mesh.triangles.iter().flat_map(|tri| tri.to_vec()).collect();
+    bevy_mesh.insert_indices(Indices::U32(indices));
+
+    bevy_mesh
+}
+
+pub fn export_obj_to_string(mesh: &GMesh) -> String {
+    let mut output = String::new();
 
     for p in &mesh.positions {
-        writeln!(writer, "v {} {} {}", p.x, p.y, p.z)?;
+        writeln!(output, "v {} {} {}", p.x, p.y, p.z).unwrap();
     }
 
     for uv in &mesh.uvs {
-        writeln!(writer, "vt {} {}", uv.x, uv.y)?;
+        writeln!(output, "vt {} {}", uv.x, uv.y).unwrap();
     }
 
     for n in &mesh.normals {
-        writeln!(writer, "vn {} {} {}", n.x, n.y, n.z)?;
+        writeln!(output, "vn {} {} {}", n.x, n.y, n.z).unwrap();
     }
 
     let has_uv = !mesh.uvs.is_empty();
@@ -26,7 +69,7 @@ pub fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
 
     for face in &mesh.triangles {
         let f = |i: u32| {
-            let vi = i + 1; // OBJ is 1-based
+            let vi = i + 1; // OBJ indices are 1-based
             match (has_uv, has_normals) {
                 (true, true) => format!("{0}/{0}/{0}", vi),
                 (true, false) => format!("{0}/{0}", vi),
@@ -35,21 +78,23 @@ pub fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
             }
         };
 
-        writeln!(writer, "f {} {} {}", f(face[0]), f(face[1]), f(face[2]))?;
+        writeln!(output, "f {} {} {}", f(face[0]), f(face[1]), f(face[2])).unwrap();
     }
 
-    Ok(())
+    output
 }
 
-pub fn load_obj(path: &Path) -> Result<Mesh, String> {
-    let (models, _) = tobj::load_obj(
-        path,
+pub fn load_obj(data: String) -> Result<GMesh, String> {
+    let (models, _) = tobj::load_obj_buf(
+        &mut data.as_bytes(),
         &LoadOptions {
             triangulate: true,
             single_index: false,
             ..Default::default()
         },
-    ).map_err(|e| format!("Failed to load OBJ: {}", e))?;
+        |_| Ok((Vec::new(), std::collections::HashMap::new())),
+    )
+    .map_err(|e| format!("Failed to load OBJ: {}", e))?;
 
     if models.is_empty() {
         return Err("OBJ file contains no geometry.".to_string());
@@ -87,7 +132,7 @@ pub fn load_obj(path: &Path) -> Result<Mesh, String> {
         }
     }
 
-    Ok(Mesh {
+    Ok(GMesh {
         positions,
         normals,
         uvs,

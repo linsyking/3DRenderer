@@ -2,6 +2,7 @@
 
 use bevy::prelude::*;
 
+
 #[derive(Resource, Default)]
 pub struct TouchInput {
     pub touch: Option<Vec2>,
@@ -28,6 +29,7 @@ pub struct MyPluginConfig {
 pub struct Scene3DPlugin {
     pub env_lightcolor: Color,
     pub move_strength: f32,
+    pub meshes: Vec<Mesh>,
 }
 
 impl Plugin for Scene3DPlugin {
@@ -53,7 +55,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    config: Res<MyPluginConfig>
+    config: Res<MyPluginConfig>,
 ) {
     // cube
     commands.spawn((
@@ -86,7 +88,7 @@ fn move_camera(
     input: Res<TouchInput>,
     mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
-    config: Res<MyPluginConfig>
+    config: Res<MyPluginConfig>,
 ) {
     if let Some(cpos) = input.touch {
         if let Some(lastpos) = lastinput.touch {

@@ -21,7 +21,8 @@ import kotlinx.serialization.json.Json
 data class AppInitOpts (
     val backgroundColor: List<Float>,
     val environmentLightColor: List<Float>,
-    val moveStrength: Float
+    val moveStrength: Float,
+    val scene: Scene,
 )
 
 fun colorToList (color: Color) : List<Float> {
@@ -29,7 +30,7 @@ fun colorToList (color: Color) : List<Float> {
 }
 
 class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
-    var bevy_app : Long = Long.MAX_VALUE
+    private var bevy_app : Long = Long.MAX_VALUE
     private var ndk_inited = false
     private var sensorManager: SensorManager? = null
     private var mSensor: Sensor? = null
@@ -102,7 +103,8 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                     val initopts = AppInitOpts(
                         backgroundColor = colorToList(appState.backgroundColor),
                         environmentLightColor = colorToList(appState.environmentLightColor),
-                        moveStrength = appState.moveStrength
+                        moveStrength = appState.moveStrength,
+                        scene = appState.scene
                         )
                     val json = Json.encodeToString(initopts)
                     bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, json)

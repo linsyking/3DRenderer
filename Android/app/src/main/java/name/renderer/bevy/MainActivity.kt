@@ -35,7 +35,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
+
+
+@Serializable
+data class Mesh(
+    val data: String = ""
+)
+
+@Serializable
+data class Scene(
+    val meshes : List<Mesh> = listOf<Mesh>()
+)
 
 // Final AppState data class with all properties
 data class AppState(
@@ -59,7 +71,7 @@ data class AppState(
     val environmentLightColor: Color = Color.White,
     val moveStrength: Float = 0.01f,
     val fontName: String = "Times",
-    val viewScale: Float = 1.0f,
+        val viewScale: Float = 1.0f,
     val viewOffsetX: Float = 0f,
     val viewOffsetY: Float = 0f,
     val polygonColor: Color = Color.Blue,
@@ -74,6 +86,7 @@ data class AppState(
     val polylineOpacity: Float = 1.0f,
     val curveColor: Color=Color.Blue,
     val curveOpacity: Float=1.0f,
+    val scene: Scene = Scene(meshes = listOf())
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -214,7 +227,11 @@ fun SurfaceCard(
                     surfaceView ->
                     inputStream?.let { inputStream ->
                         val bytes = inputStream.readBytes()
-                        RustBridge.import_mesh(surfaceView.bevy_app, bytes)
+                        val string = bytes.toString()
+                        // Update state
+                        val oldMeshes = appState.scene.meshes
+                        val newMeshes = oldMeshes + Mesh(data = string)
+                        onUpdateAppState(appState.copy(scene = Scene(meshes = newMeshes)))
                     }
                 }
             }

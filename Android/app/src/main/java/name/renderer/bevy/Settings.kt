@@ -67,50 +67,6 @@ fun SettingsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Canvas Width setting
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text(text = "Canvas width", modifier = Modifier.weight(1f))
-//                    // Text field for canvas width with number input
-//                    TextField(
-//                        value = appState.canvasWidth.toInt().toString(),
-//                        onValueChange = {
-//                            // Update the state only if the input is a valid number
-//                            val newWidth = it.toFloatOrNull()
-//                            if (newWidth != null) {
-//                                onUpdateAppState(appState.copy(canvasWidth = newWidth))
-//                            }
-//                        },
-//                        modifier = Modifier.weight(1f),
-//                        singleLine = true,
-//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-//                    )
-//                }
-//
-//                // Canvas Height setting
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text(text = "Canvas height", modifier = Modifier.weight(1f))
-//                    // Text field for canvas height with number input
-//                    TextField(
-//                        value = appState.canvasHeight.toInt().toString(),
-//                        onValueChange = {
-//                            // Update the state only if the input is a valid number
-//                            val newHeight = it.toFloatOrNull()
-//                            if (newHeight != null) {
-//                                onUpdateAppState(appState.copy(canvasHeight = newHeight))
-//                            }
-//                        },
-//                        modifier = Modifier.weight(1f),
-//                        singleLine = true,
-//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-//                    )
-//                }
-
                 // Background Color setting
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

@@ -25,10 +25,13 @@ uuid = { version = "1.13", features = ["v4"] }
 log = "0.4"
 obj-exporter = "0.2.0"
 glam = "0.30.5"
-tobj = "4.0.3"
 nalgebra = "0.32.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+[dependencies.tobj]
+version = "4.0.3"
+default-features = false
 
 [target.'cfg(target_os = "ios")'.dependencies]
 core-graphics = "*"
