@@ -285,3 +285,219 @@ fn fit_bspline_control_points(points: &PointSet) -> Vec<Vec3> {
     }
     control_points
 }
+
+#[derive(Debug, Clone, Copy)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+impl Mesh {
+    /// Uniform translation - move entire mesh by offset
+    pub fn translate(&mut self, offset: Vec3) {
+        for pos in &mut self.positions {
+            *pos += offset;
+        }
+        // Normals don't change with translation
+    }
+
+    /// Move a single vertex by offset
+    pub fn translate_vertex(&mut self, vertex_index: usize, offset: Vec3) {
+        if vertex_index < self.positions.len() {
+            self.positions[vertex_index] += offset;
+            self.recalculate_normals();
+        }
+    }
+
+    /// Rotate around specified axis by angle in radians
+    pub fn rotate(&mut self, axis: Axis, angle: f32) {
+        let cos_a = angle.cos();
+        let sin_a = angle.sin();
+
+        match axis {
+            Axis::X => { // X-axis rotation
+                for pos in &mut self.positions {
+                    let y = pos.y * cos_a - pos.z * sin_a;
+                    let z = pos.y * sin_a + pos.z * cos_a;
+                    pos.y = y;
+                    pos.z = z;
+                }
+
+                for normal in &mut self.normals {
+                    let y = normal.y * cos_a - normal.z * sin_a;
+                    let z = normal.y * sin_a + normal.z * cos_a;
+                    normal.y = y;
+                    normal.z = z;
+                }
+            },
+            Axis::Y => { // Y-axis rotation
+                for pos in &mut self.positions {
+                    let x = pos.x * cos_a + pos.z * sin_a;
+                    let z = -pos.x * sin_a + pos.z * cos_a;
+                    pos.x = x;
+                    pos.z = z;
+                }
+
+                for normal in &mut self.normals {
+                    let x = normal.x * cos_a + normal.z * sin_a;
+                    let z = -normal.x * sin_a + normal.z * cos_a;
+                    normal.x = x;
+                    normal.z = z;
+                }
+            },
+            Axis::Z => { // Z-axis rotation
+                for pos in &mut self.positions {
+                    let x = pos.x * cos_a - pos.y * sin_a;
+                    let y = pos.x * sin_a + pos.y * cos_a;
+                    pos.x = x;
+                    pos.y = y;
+                }
+
+                for normal in &mut self.normals {
+                    let x = normal.x * cos_a - normal.y * sin_a;
+                    let y = normal.x * sin_a + normal.y * cos_a;
+                    normal.x = x;
+                    normal.y = y;
+                }
+            },
+        }
+    }
+
+    /// Uniform scaling by a single factor
+    pub fn scale(&mut self, factor: f32) {
+        for pos in &mut self.positions {
+            *pos *= factor;
+        }
+        // Normals don't need to change for uniform scaling
+    }
+
+    /// Non-uniform scaling along each axis
+    pub fn scale_xyz(&mut self, scale_x: f32, scale_y: f32, scale_z: f32) {
+        for pos in &mut self.positions {
+            pos.x *= scale_x;
+            pos.y *= scale_y;
+            pos.z *= scale_z;
+        }
+        // Non-uniform scaling affects normals
+        self.recalculate_normals();
+    }
+
+    /// Reflect across specified axis (flip coordinates)
+    pub fn reflect(&mut self, axis: Axis) {
+        match axis {
+            Axis::X => { // Reflect across X-axis
+                for pos in &mut self.positions {
+                    pos.x = -pos.x;
+                }
+            },
+            Axis::Y => { // Reflect across Y-axis
+                for pos in &mut self.positions {
+                    pos.y = -pos.y;
+                }
+            },
+            Axis::Z => { // Reflect across Z-axis
+                for pos in &mut self.positions {
+                    pos.z = -pos.z;
+                }
+            },
+        }
+
+        self.flip_winding_order();
+        self.recalculate_normals();
+    }
+
+    /// Subdivide each triangle into 4 smaller triangles (Loop subdivision)
+    pub fn subdivide(&mut self) {
+        let mut edge_to_midpoint = std::collections::HashMap::new();
+        let mut new_triangles = Vec::new();
+
+        // Helper to get or create midpoint vertex
+        let mut get_midpoint = |edge: (u32, u32),
+                                positions: &mut Vec<Vec3>,
+                                normals: &mut Vec<Vec3>,
+                                uvs: &mut Vec<Vec2>| -> u32 {
+            let ordered_edge = if edge.0 < edge.1 { edge } else { (edge.1, edge.0) };
+
+            if let Some(&midpoint_idx) = edge_to_midpoint.get(&ordered_edge) {
+                return midpoint_idx;
+            }
+
+            let v0_idx = edge.0 as usize;
+            let v1_idx = edge.1 as usize;
+
+            let midpoint_pos = (positions[v0_idx] + positions[v1_idx]) * 0.5;
+            let midpoint_normal = (normals[v0_idx] + normals[v1_idx]).normalize();
+            let midpoint_uv = (uvs[v0_idx] + uvs[v1_idx]) * 0.5;
+
+            let new_idx = positions.len() as u32;
+            positions.push(midpoint_pos);
+            normals.push(midpoint_normal);
+            uvs.push(midpoint_uv);
+
+            edge_to_midpoint.insert(ordered_edge, new_idx);
+            new_idx
+        };
+
+        // Process each triangle
+        for triangle in &self.triangles {
+            let v0 = triangle[0];
+            let v1 = triangle[1];
+            let v2 = triangle[2];
+
+            // Get midpoints for each edge
+            let m01 = get_midpoint((v0, v1), &mut self.positions, &mut self.normals, &mut self.uvs);
+            let m12 = get_midpoint((v1, v2), &mut self.positions, &mut self.normals, &mut self.uvs);
+            let m20 = get_midpoint((v2, v0), &mut self.positions, &mut self.normals, &mut self.uvs);
+
+            // Create 4 new triangles
+            new_triangles.push([v0, m01, m20]);    // Corner triangle 0
+            new_triangles.push([v1, m12, m01]);    // Corner triangle 1
+            new_triangles.push([v2, m20, m12]);    // Corner triangle 2
+            new_triangles.push([m01, m12, m20]);   // Center triangle
+        }
+
+        self.triangles = new_triangles;
+        self.recalculate_normals();
+    }
+
+    /// Recalculate normals based on triangle geometry
+    fn recalculate_normals(&mut self) {
+        // Reset all normals to zero
+        self.normals.fill(Vec3::ZERO);
+
+        // Accumulate face normals for each vertex
+        for triangle in &self.triangles {
+            let v0 = self.positions[triangle[0] as usize];
+            let v1 = self.positions[triangle[1] as usize];
+            let v2 = self.positions[triangle[2] as usize];
+
+            let face_normal = (v1 - v0).cross(v2 - v0);
+            let face_normal = if face_normal.length() > 0.0 {
+                face_normal.normalize()
+            } else {
+                Vec3::Y // fallback
+            };
+
+            self.normals[triangle[0] as usize] += face_normal;
+            self.normals[triangle[1] as usize] += face_normal;
+            self.normals[triangle[2] as usize] += face_normal;
+        }
+
+        // Normalize all accumulated normals
+        for normal in &mut self.normals {
+            *normal = if normal.length() > 0.0 {
+                normal.normalize()
+            } else {
+                Vec3::Y // fallback for degenerate cases
+            };
+        }
+    }
+
+    /// Flip the winding order of all triangles (used after reflection)
+    fn flip_winding_order(&mut self) {
+        for triangle in &mut self.triangles {
+            triangle.swap(0, 2);
+        }
+    }
+}
