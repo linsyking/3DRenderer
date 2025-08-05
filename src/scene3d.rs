@@ -2,10 +2,12 @@
 
 use bevy::prelude::*;
 
-use crate::{
-    file_io::to_bevy_mesh,
-    geometry::{curvify, meshify},
-};
+use crate::{file_io::to_bevy_mesh, geometry::meshify};
+
+#[derive(Event)]
+pub struct SpawnMeshEvent {
+    pub mesh: Mesh,
+}
 
 #[derive(Resource, Default)]
 pub struct TouchInput {
@@ -38,6 +40,8 @@ pub struct MyPluginConfig {
     pub meshes: Vec<MeshConfig>,
     pub camera_pos: Vec<f32>,
     pub sketch: bool, // Whether to use sketch mode
+    pub sketch_history: Vec<glam::Vec3>,
+    pub current_mesh: Option<crate::geometry::Mesh>,
 }
 
 pub struct Scene3DPlugin {
@@ -49,6 +53,7 @@ pub struct Scene3DPlugin {
 
 impl Plugin for Scene3DPlugin {
     fn build(&self, app: &mut App) {
+        app.add_event::<SpawnMeshEvent>();
         app.insert_resource(TouchInput::default())
             .insert_resource(LastTouchInput::default())
             .insert_resource(MyPluginConfig {
@@ -57,6 +62,8 @@ impl Plugin for Scene3DPlugin {
                 meshes: self.meshes.clone(),
                 camera_pos: self.camera_pos.clone(),
                 sketch: false,
+                sketch_history: Vec::new(),
+                current_mesh: None,
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -64,7 +71,25 @@ impl Plugin for Scene3DPlugin {
                 radius: 10.0,
             })
             .add_systems(Startup, setup)
+            .add_systems(Update, handle_spawn_event)
             .add_systems(Update, move_camera);
+    }
+}
+
+fn handle_spawn_event(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut reader: EventReader<SpawnMeshEvent>,
+) {
+    for e in reader.read() {
+        // Spawn meshes from the event
+        let mesh_handle = meshes.add(e.mesh.clone());
+        commands.spawn((
+            Mesh3d(mesh_handle),
+            MeshMaterial3d(materials.add(Color::srgb_u8(0, 0, 255))),
+            Transform::from_xyz(0.0, 0.0, 0.0),
+        ));
     }
 }
 
@@ -81,11 +106,11 @@ fn setup(
     //     MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
     //     Transform::from_xyz(0.0, 0.0, 0.0),
     // ));
-    commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(200, 200, 200))),
-        Transform::from_xyz(0.0, -1.0, 0.0),
-    ));
+    // commands.spawn((
+    //     Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
+    //     MeshMaterial3d(materials.add(Color::srgb_u8(200, 200, 200))),
+    //     Transform::from_xyz(0.0, -1.0, 0.0),
+    // ));
     // light
     commands.spawn((
         PointLight {
@@ -111,77 +136,62 @@ fn setup(
         ));
     }
 
-    // Test curve mesh
-    let ps = vec![glam::Vec3::new(-2., 0.0, 0.0), glam::Vec3::new(2., 4., 0.0)];
-    let cc = curvify(&ps);
-    let mm = meshify(&cc, glam::Vec3::new(-2.5, 4.5, 9.0));
-    let rmm = to_bevy_mesh(&mm);
-
-    commands.spawn((
-        Mesh3d(meshes.add(rmm)),
-        MeshMaterial3d(materials.add(Color::srgb_u8(255, 0, 0))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
 }
 
 fn move_camera(
-    mut commands: Commands,
+    // mut commands: Commands,
     mut query: Query<&mut Transform, With<Camera3d>>,
     cameras: Query<(&Camera, &GlobalTransform)>,
     input: Res<TouchInput>,
     mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
-    config: Res<MyPluginConfig>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut config: ResMut<MyPluginConfig>,
+    // mut meshes: ResMut<Assets<Mesh>>,
+    // mut materials: ResMut<Assets<StandardMaterial>>,
     windows: Query<&Window>,
 ) {
     if config.sketch {
         // If sketch mode is enabled, we don't move the camera
 
         if let Some(cpos) = input.touch {
-            if let Some(lastpos) = lastinput.touch {
-                let delta = cpos - lastpos;
-            } else {
-                // Fisrt time
-                let window = windows.single().unwrap();
-                let (camera, camera_transform) = cameras.single().unwrap();
-                let ccpos = cpos / window.scale_factor();
+            let window = windows.single().unwrap();
+            let (camera, camera_transform) = cameras.single().unwrap();
+            let ccpos = cpos / window.scale_factor();
 
-                if let Ok(ray) = camera.viewport_to_world(camera_transform, ccpos) {
-                    let cam_pos = camera_transform.translation();
-                    let cam_forward = camera_transform.forward() * 10.0; // +Z in Bevy
+            if let Ok(ray) = camera.viewport_to_world(camera_transform, ccpos) {
+                let cam_pos = camera_transform.translation();
+                let cam_forward = camera_transform.forward() * 10.0; // +Z in Bevy
 
-                    // Plane 1 unit in front of camera
-                    let plane_origin = cam_pos + cam_forward;
-                    let plane_normal = cam_forward;
+                // Plane 1 unit in front of camera
+                let plane_origin = cam_pos + cam_forward;
+                let plane_normal = cam_forward;
 
-                    let ray_origin = ray.origin;
-                    let ray_dir = ray.direction;
+                let ray_origin = ray.origin;
+                let ray_dir = ray.direction;
 
-                    // Ray-plane intersection: (P - plane_origin) ⋅ n = 0
-                    // Solve for t: (O + tD - plane_origin) ⋅ n = 0
-                    let denom = ray_dir.dot(plane_normal);
-                    let mut mshp = Sphere::default();
-                    mshp.radius = 0.5;
-                    if denom.abs() > f32::EPSILON {
-                        let t = (plane_origin - ray_origin).dot(plane_normal) / denom;
-                        if t >= 0.0 {
-                            let intersection = ray_origin + ray_dir * t;
-                            commands.spawn((
-                                Mesh3d(meshes.add(Mesh::from(mshp.mesh().ico(5).unwrap()))),
-                                MeshMaterial3d(materials.add(Color::srgb_u8(200, 200, 200))),
-                                Transform::from_translation(intersection),
-                            ));
-                            log::info!("Hit point 1 unit in front of camera: {:?}", intersection);
-                        } else {
-                            log::info!("Intersection behind the camera");
-                        }
+                // Ray-plane intersection: (P - plane_origin) ⋅ n = 0
+                // Solve for t: (O + tD - plane_origin) ⋅ n = 0
+                let denom = ray_dir.dot(plane_normal);
+                let mut mshp = Sphere::default();
+                mshp.radius = 0.5;
+                if denom.abs() > f32::EPSILON {
+                    let t = (plane_origin - ray_origin).dot(plane_normal) / denom;
+                    if t >= 0.0 {
+                        let intersection = ray_origin + ray_dir * t;
+                        log::info!("Hit point 1 unit in front of camera: {:?}", intersection);
+                        config.sketch_history.push(glam::Vec3::new(
+                            intersection.x,
+                            intersection.y,
+                            intersection.z,
+                        ));
                     } else {
-                        log::info!("Ray is parallel to the plane");
+                        log::info!("Intersection behind the camera");
                     }
+                } else {
+                    log::info!("Ray is parallel to the plane");
                 }
             }
+
             lastinput.touch = Some(cpos);
         }
         return;

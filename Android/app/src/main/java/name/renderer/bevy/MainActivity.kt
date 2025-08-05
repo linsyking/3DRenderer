@@ -95,7 +95,8 @@ data class AppState(
     val polylineOpacity: Float = 1.0f,
     val curveColor: Color=Color.Blue,
     val curveOpacity: Float=1.0f,
-    val scene: Scene = Scene()
+    val scene: Scene = Scene(),
+    val sketchMode: Boolean = false
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -147,12 +148,47 @@ fun MyApp() {
                 onTextClick = { navController.navigate("text") },
 //                onTransformClick = { navController.navigate("transform") },
                 onViewClick = { navController.navigate("view") },
-                onSphereClick = {navController.navigate("edit")},
-                onCubeClick = {navController.navigate("edit")},
-//                onPolygonClick={navController.navigate("polygon")},
+                onSphereClick = {
+                    val cobjs = appState.scene.objects
+                    val nobjs = cobjs + BObject(
+                        data = "",
+                        color = listOf(1.0f, 1.0f, 1.0f),
+                        type = "sphere",
+                        label = "none",
+                        pos = listOf(0.0f, 0.0f, 0.0f),
+                        scale = 1f
+                    )
+                    appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    navController.navigateUp() },
+                onCubeClick = {
+
+                    val cobjs = appState.scene.objects
+                    val nobjs = cobjs + BObject(
+                        data = "",
+                        color = listOf(1.0f, 1.0f, 1.0f),
+                        type = "cube",
+                        label = "none",
+                        pos = listOf(0.0f, 0.0f, 0.0f),
+                        scale = 1f
+                    )
+                    appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    navController.navigateUp()  },
+                onPlaneClick={
+
+                    val cobjs = appState.scene.objects
+                    val nobjs = cobjs + BObject(
+                        data = "",
+                        color = listOf(1.0f, 1.0f, 1.0f),
+                        type = "plane",
+                        label = "none",
+                        pos = listOf(0.0f, 0.0f, 0.0f),
+                        scale = 1f
+                    )
+                    appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    navController.navigateUp() },
 //                onShapeClick={navController.navigate("shape")},
 //                onPolylineClick={navController.navigate("polyline")},
-//                onCurveClick={navController.navigate("curve")},
+                onCurveClick={navController.navigate("curve")},
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -206,13 +242,13 @@ fun MyApp() {
 //                onBack = { navController.navigateUp() }
 //            )
 //        }
-//        composable("curve") {
-//             CurveScreen(
-//                appState = appState,
-//                onUpdateAppState = { newState -> appState = newState },
-//                onBack = { navController.navigateUp() }
-//            )
-//        }
+        composable("curve") {
+             CurveScreen(
+                appState = appState,
+                onUpdateAppState = { newState -> appState = newState },
+                onBack = { navController.navigateUp() }
+            )
+        }
     }
 }
 

@@ -30,8 +30,8 @@ fun ToolboxScreen(
     onViewClick: () -> Unit,
     onCubeClick: () -> Unit,
     onSphereClick: () -> Unit,
-//    onPolylineClick: () -> Unit,
-//    onCurveClick: () -> Unit,
+    onPlaneClick: () -> Unit,
+    onCurveClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -83,8 +83,8 @@ fun ToolboxScreen(
                 ToolboxRow(
                     items = listOf(
                         // All icons are now the specific drawable resources
-                        ToolboxItem("undo", R.drawable.undo, onClick = { /* TODO: Handle undo */ }),
-                        ToolboxItem("redo", R.drawable.redo, onClick = { /* TODO: Handle redo */ }),
+                        ToolboxItem("undo", R.drawable.undo, onClick = { onBack}),
+                        ToolboxItem("redo", R.drawable.redo, onClick = { onBack }),
                         ToolboxItem("view", R.drawable.view, onClick = onViewClick),
                         ToolboxItem("edit", R.drawable.edit, onClick = onEditClick),
                     )
@@ -95,7 +95,7 @@ fun ToolboxScreen(
                     items = listOf(
                         // All icons are now the specific drawable resources
                         ToolboxItem("text", R.drawable.text, onClick = onTextClick),
-                        ToolboxItem("light", R.drawable.light, onClick = { /* TODO: Handle light */ }),
+                        ToolboxItem("light", R.drawable.light, onClick = { onBack }),
                         ToolboxItem("Cube", R.drawable.cube, onClick=onCubeClick),
                         ToolboxItem("Sphere", R.drawable.sphere,onClick=onSphereClick),
 //                        ToolboxItem("transform", R.drawable.transform, onClick = onTransformClick),
@@ -103,15 +103,15 @@ fun ToolboxScreen(
                 )
 
                 // Row 3: Polygon, Polyline, Shape, Curve
-//                ToolboxRow(
-//                    items = listOf(
+                ToolboxRow(
+                    items = listOf(
 //                         All icons are now the specific drawable resources
-//                        ToolboxItem("polygon", R.drawable.polygon, onClick = onPolygonClick),
+                        ToolboxItem("plane", R.drawable.polygon, onClick = onPlaneClick),
 //                        ToolboxItem("polyline", R.drawable.polyline, onClick = onPolylineClick),
 //                        ToolboxItem("shape", R.drawable.shape, onClick = onShapeClick),
-//                        ToolboxItem("curve", R.drawable.curve, onClick = onCurveClick),
-//                    )
-//                )
+                        ToolboxItem("curve", R.drawable.curve, onClick = onCurveClick),
+                    )
+                )
             }
         }
     }

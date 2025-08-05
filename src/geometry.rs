@@ -98,7 +98,7 @@ fn eval_bspline_tangent(control_points: &[Vec3], t: f32) -> Vec3 {
 }
 
 /// Convert B-spline curve to mesh using camera-aware tube generation
-pub fn meshify(curve: &CubicBezierCurve, camera_pos: Vec3) -> Mesh {
+pub fn meshify(curve: &CubicBezierCurve, camera_pos: Vec3, radius: f32) -> Mesh {
     if curve.len() < 2 {
         return Mesh {
             positions: Vec::new(),
@@ -109,7 +109,6 @@ pub fn meshify(curve: &CubicBezierCurve, camera_pos: Vec3) -> Mesh {
     }
 
     const RADIAL_SEGMENTS: usize = 8;
-    const TUBE_RADIUS: f32 = 0.02;
 
     let segments = curve.len();
     let mut positions = Vec::new();
@@ -147,7 +146,7 @@ pub fn meshify(curve: &CubicBezierCurve, camera_pos: Vec3) -> Mesh {
             let sin_angle = angle.sin();
 
             // Position on tube surface
-            let offset = (right * cos_angle + up * sin_angle) * TUBE_RADIUS;
+            let offset = (right * cos_angle + up * sin_angle) * radius;
             let vertex_pos = point + offset;
 
             // Normal points outward

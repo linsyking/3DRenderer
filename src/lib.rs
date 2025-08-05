@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use bevy::ecs::{
@@ -20,7 +20,11 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
-use crate::scene3d::{LastTouchInput, MeshConfig, OrbitCamera, TouchInput};
+use crate::{
+    file_io::{export_obj_to_string, to_bevy_mesh},
+    geometry::meshify,
+    scene3d::{LastTouchInput, MeshConfig, OrbitCamera, SpawnMeshEvent, TouchInput},
+};
 
 #[cfg(target_os = "android")]
 mod android_asset_io;
@@ -34,7 +38,7 @@ mod stepping;
 mod file_io;
 mod geometry;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 struct ObjConfig {
     data: String,
     #[serde(rename = "type")]
@@ -173,25 +177,83 @@ pub(crate) fn update_camera(app: &mut App, pos: Vec3) {
 pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
     let mut meshes = vec![];
     for mesh_config in opts.scene.objects {
-        let mesh_data = mesh_config.data;
-        // log::info!("Importing mesh data: {}", mesh_data);
-        let res = file_io::load_obj(mesh_data).unwrap();
-        let mymesh = file_io::to_bevy_mesh(&res);
-        let mm = MeshConfig {
-            mesh: mymesh,
-            transform: Transform::from_xyz(
-                mesh_config.pos[0],
-                mesh_config.pos[1],
-                mesh_config.pos[2],
-            )
-            .with_scale(Vec3::splat(mesh_config.scale)),
-            color: Color::srgb(
-                mesh_config.color[0],
-                mesh_config.color[1],
-                mesh_config.color[2],
-            ),
-        };
-        meshes.push(mm);
+        if mesh_config.objtype == "mesh" {
+            let mesh_data = mesh_config.data;
+            // log::info!("Importing mesh data: {}", mesh_data);
+            let res = file_io::load_obj(mesh_data).unwrap();
+            let mymesh = file_io::to_bevy_mesh(&res);
+            let mm = MeshConfig {
+                mesh: mymesh,
+                transform: Transform::from_xyz(
+                    mesh_config.pos[0],
+                    mesh_config.pos[1],
+                    mesh_config.pos[2],
+                )
+                .with_scale(Vec3::splat(mesh_config.scale)),
+                color: Color::srgb(
+                    mesh_config.color[0],
+                    mesh_config.color[1],
+                    mesh_config.color[2],
+                ),
+            };
+            meshes.push(mm);
+        }
+        if mesh_config.objtype == "sphere" {
+            let mut mshp = Sphere::default();
+            mshp.radius = 1.0;
+            let mymesh = mshp.mesh().ico(5).unwrap();
+            let mm = MeshConfig {
+                mesh: mymesh,
+                transform: Transform::from_xyz(
+                    mesh_config.pos[0],
+                    mesh_config.pos[1],
+                    mesh_config.pos[2],
+                )
+                .with_scale(Vec3::splat(mesh_config.scale)),
+                color: Color::srgb(
+                    mesh_config.color[0],
+                    mesh_config.color[1],
+                    mesh_config.color[2],
+                ),
+            };
+            meshes.push(mm);
+        }
+        if mesh_config.objtype == "plane" {
+            let mshp = Plane3d::default().mesh().size(100.0, 100.0);
+            let mm = MeshConfig {
+                mesh: mshp.into(),
+                transform: Transform::from_xyz(
+                    mesh_config.pos[0],
+                    mesh_config.pos[1],
+                    mesh_config.pos[2],
+                )
+                .with_scale(Vec3::splat(mesh_config.scale)),
+                color: Color::srgb(
+                    mesh_config.color[0],
+                    mesh_config.color[1],
+                    mesh_config.color[2],
+                ),
+            };
+            meshes.push(mm);
+        }
+        if mesh_config.objtype == "cube" {
+            let mshp = Cuboid::new(1.0, 1.0, 1.0).mesh();
+            let mm = MeshConfig {
+                mesh: mshp.into(),
+                transform: Transform::from_xyz(
+                    mesh_config.pos[0],
+                    mesh_config.pos[1],
+                    mesh_config.pos[2],
+                )
+                .with_scale(Vec3::splat(mesh_config.scale)),
+                color: Color::srgb(
+                    mesh_config.color[0],
+                    mesh_config.color[1],
+                    mesh_config.color[2],
+                ),
+            };
+            meshes.push(mm);
+        }
     }
 
     let light = opts.light_color;
@@ -204,6 +266,69 @@ pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
         meshes: meshes,
         camera_pos: opts.scene.camera_pos,
     }
+}
+
+pub(crate) fn switch_mode(app: &mut App, mode: u32) {
+    let mut config = app.world_mut().resource_mut::<scene3d::MyPluginConfig>();
+    config.sketch = mode == 1;
+    log::info!("Switching to mode: {}", mode);
+    if config.sketch {
+        log::info!("Sketch mode enabled");
+    } else {
+        log::info!("Sketch mode disabled");
+    }
+}
+
+pub(crate) fn touch_enter(app: &mut App, pos: Vec2) {
+    let mut config = app.world_mut().resource_mut::<scene3d::MyPluginConfig>();
+    if config.sketch {
+        config.sketch_history.clear();
+    }
+    change_touch(app, Some(pos));
+    change_last_touch(app, None);
+}
+
+pub(crate) fn get_current_mesh(app: &mut App) -> String {
+    let config = app.world_mut().resource_mut::<scene3d::MyPluginConfig>();
+    let mm = &config.current_mesh;
+    let mut bobj = ObjConfig {
+        data: String::new(),
+        objtype: "mesh".to_string(),
+        label: "none".to_string(),
+        color: vec![0.0, 0.0, 1.0],
+        pos: vec![0.0, 0.0, 0.0],
+        scale: 1.0,
+    };
+    if let Some(mesh) = mm {
+        bobj.data = export_obj_to_string(mesh);
+    }
+    let json_str = serde_json::to_string(&bobj).unwrap();
+
+    return json_str;
+}
+
+pub(crate) fn touch_exit(app: &mut App) {
+    let mut camq = app
+        .world_mut()
+        .query_filtered::<&mut Transform, With<Camera3d>>();
+    let mut rtm = Vec3::ZERO;
+    for transform in camq.iter(app.world_mut()) {
+        rtm = transform.translation;
+    }
+    let mut config = app.world_mut().resource_mut::<scene3d::MyPluginConfig>();
+    if config.sketch {
+        // Draw the sketch
+        let mm = meshify(
+            &config.sketch_history,
+            glam::Vec3::new(rtm.x, rtm.y, rtm.z),
+            0.1,
+        );
+        config.current_mesh = Some(mm.clone());
+        let rmm = to_bevy_mesh(&mm);
+        app.world_mut().send_event(SpawnMeshEvent { mesh: rmm });
+    }
+    change_touch(app, None);
+    change_last_touch(app, None);
 }
 
 pub(crate) fn change_touch(app: &mut App, pos: Option<Vec2>) {

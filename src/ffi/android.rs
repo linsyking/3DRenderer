@@ -6,7 +6,7 @@ use bevy::input::ButtonState;
 use bevy::prelude::*;
 use jni::JNIEnv;
 use jni::objects::JString;
-use jni::sys::{jfloat, jlong, jobject, jstring};
+use jni::sys::{jfloat, jint, jlong, jobject, jstring};
 use jni_fn::jni_fn;
 use log::LevelFilter;
 
@@ -93,12 +93,25 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
     }
 }
 
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn update_camera_offset(
+    _env: *mut JNIEnv,
+    _: jobject,
+    obj: jlong,
+    x: jfloat,
+    y: jfloat,
+    z: jfloat,
+) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::update_camera(app, Vec3::new(x as f32, y as f32, z as f32));
+}
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
-pub fn update_camera_offset(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat, z: jfloat) {
+pub fn switch_mode(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jint) {
     let app = unsafe { &mut *(obj as *mut App) };
-    crate::update_camera(app, Vec3::new(x as f32, y as f32, z as f32));
+    crate::switch_mode(app, x as u32);
 }
 
 #[unsafe(no_mangle)]
@@ -112,16 +125,25 @@ pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_enter_touch(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
     let app = unsafe { &mut *(obj as *mut App) };
-    crate::change_touch(app, Some(vec2(x as f32, y as f32)));
-    crate::change_last_touch(app, None);
+    crate::touch_enter(app, Vec2::new(x as f32, y as f32));
 }
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_exit_touch(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     let app = unsafe { &mut *(obj as *mut App) };
-    crate::change_touch(app, None);
-    crate::change_last_touch(app, None);
+    crate::touch_exit(app);
+}
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn get_mesh(env: JNIEnv, _: jobject, obj: jlong) -> jstring {
+    let app = unsafe { &mut *(obj as *mut App) };
+    let rust_str = crate::get_current_mesh(app);
+    let java_str = env
+        .new_string(rust_str.as_str())
+        .expect("Couldn't create Java string");
+    java_str.into_raw()
 }
 
 #[unsafe(no_mangle)]
