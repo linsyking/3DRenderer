@@ -350,6 +350,8 @@ dependencies = [
  "objc",
  "raw-window-handle",
  "tobj",
+ "serde",
+ "serde_json",
  "uuid",
  "wgpu",
 ]
