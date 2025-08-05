@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use serde::Deserialize;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use bevy::ecs::{
@@ -19,23 +20,38 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
-use crate::scene3d::TouchInput;
+use crate::scene3d::{LastTouchInput, TouchInput};
 
-#[cfg(target_os = "android")]
+// #[cfg(target_os = "android")]
 mod android_asset_io;
 
 mod breakout_game;
 mod lighting_demo;
-mod shapes_demo;
 mod scene3d;
+mod shapes_demo;
 mod stepping;
 
 mod file_io;
 mod geometry;
 
+#[derive(Deserialize, Debug)]
+struct AppInitOpts {
+    #[serde(rename = "backgroundColor")]
+    background_color: Vec<f32>,
+
+    #[serde(rename = "environmentLightColor")]
+    light_color: Vec<f32>,
+
+    #[serde(rename = "moveStrength")]
+    move_strength: f32,
+}
+
 #[allow(unused_variables)]
 pub fn create_breakout_app(
     #[cfg(target_os = "android")] android_asset_manager: android_asset_io::AndroidAssetManager,
+    bg_color: Color,
+    light_color: Color,
+    move_strength: f32,
 ) -> App {
     #[allow(unused_imports)]
     use bevy::winit::WinitPlugin;
@@ -84,7 +100,7 @@ pub fn create_breakout_app(
             .add_before::<bevy::asset::AssetPlugin>(android_asset_io::AndroidAssetIoPlugin);
     }
     bevy_app
-        .insert_resource(ClearColor(Color::srgb(1.0, 1.0, 1.0)))
+        .insert_resource(ClearColor(bg_color))
         .add_plugins(default_plugins);
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -92,7 +108,10 @@ pub fn create_breakout_app(
 
     // bevy_app.add_plugins(breakout_game::BreakoutGamePlugin);
     // bevy_app.add_plugins(lighting_demo::LightingDemoPlugin);
-    bevy_app.add_plugins(scene3d::Scene3DPlugin);
+    bevy_app.add_plugins(scene3d::Scene3DPlugin {
+        env_lightcolor: light_color,
+        move_strength: move_strength,
+    });
     // bevy_app.add_plugins(shapes_demo::ShapesDemoPlugin);
 
     // In this scenario, need to call the setup() of the plugins that have been registered
@@ -110,9 +129,14 @@ pub fn create_breakout_app(
     bevy_app
 }
 
-pub(crate) fn change_touch(app: &mut App, x: f32, y: f32) {
+pub(crate) fn change_touch(app: &mut App, pos: Option<Vec2>) {
     let mut touch_input = app.world_mut().resource_mut::<TouchInput>();
-    touch_input.touch_delta = Some(Vec2::new(x, y));
+    touch_input.touch = pos;
+}
+
+pub(crate) fn change_last_touch(app: &mut App, pos: Option<Vec2>) {
+    let mut touch_input = app.world_mut().resource_mut::<LastTouchInput>();
+    touch_input.touch = pos;
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]

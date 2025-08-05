@@ -2,6 +2,7 @@ package name.renderer.bevy
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -53,11 +54,9 @@ data class AppState(
     val meshOpacity: Float = 1.0f,
     val meshMetallic: Float = 0.0f,
     val meshRoughness: Float = 0.5f,
-    val canvasWidth: Float = 1200f,
-    val canvasHeight: Float = 800f,
     val backgroundColor: Color = Color.White,
     val environmentLightColor: Color = Color.White,
-    val environmentLightStrength: Float = 0.5f,
+    val moveStrength: Float = 0.01f,
     val fontName: String = "Times",
     val viewScale: Float = 1.0f,
     val viewOffsetX: Float = 0f,
@@ -88,11 +87,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+var globalAppState : AppState ? = null
+
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
     // Top-level state, passed down to child Composables via callbacks
     var appState by remember { mutableStateOf(AppState()) }
+    globalAppState = appState
 
     NavHost(
         navController = navController, startDestination = "main",
@@ -206,6 +208,7 @@ fun SurfaceCard(
             uri?.let {
                 // User has selected a file.
                 // TODO: Pass this URI to your Rust bridge to handle the file.
+                Log.i("import file", uri.toString())
             }
         }
     )

@@ -349,6 +349,8 @@ dependencies = [
  "obj-exporter",
  "objc",
  "raw-window-handle",
+ "serde",
+ "serde_json",
  "tobj",
  "uuid",
  "wgpu",

@@ -4,9 +4,11 @@ use android_logger::Config;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use jni::JNIEnv;
-use jni::sys::{jfloat, jlong, jobject};
+use jni::objects::JString;
+use jni::sys::{jfloat, jlong, jobject, jstring};
 use jni_fn::jni_fn;
 use log::LevelFilter;
+use crate::AppInitOpts;
 
 #[link(name = "c++_shared")]
 unsafe extern "C" {}
@@ -31,19 +33,42 @@ pub fn init_ndk_context(env: JNIEnv, _: jobject, context: jobject) {
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn create_bevy_app(
-    env: *mut JNIEnv,
+    env: *mut jni::sys::JNIEnv,
     _: jobject,
     asset_manager: jobject,
     surface: jobject,
     scale_factor: jfloat,
+    opts: jstring,
 ) -> jlong {
-    let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env as _, asset_manager) };
+    let mut env = unsafe { JNIEnv::from_raw(env).expect("Invalid JNIEnv pointer") };
+
+    // Convert opts (jstring) into safe JString wrapper
+    let jstr = unsafe  { JString::from_raw(opts) } ;
+
+    // Convert Java string to Rust String
+    let rust_str: String = env
+        .get_string(&jstr)
+        .expect("Failed to get string")
+        .into();
+    
+    // log::info!("Creating Bevy App with options: {}", rust_str);
+    let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env.get_native_interface() as _, asset_manager) };
+
     let android_obj = AndroidViewObj {
-        native_window: NativeWindow::new(env, surface),
+        native_window: NativeWindow::new(env.get_native_interface() as *mut _, surface),
         scale_factor: scale_factor as _,
     };
 
-    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager));
+
+    let state: AppInitOpts = serde_json::from_str(rust_str.as_str()).unwrap();
+
+    let bg = state.background_color;
+    let bg_color = Color::srgb(bg[0], bg[1], bg[2]);
+    let light = state.light_color;
+    let light_color = Color::srgb(light[0], light[1], light[2]);
+    let move_strength = state.move_strength;
+
+    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, move_strength);
     bevy_app.insert_non_send_resource(android_obj);
     crate::app_view::create_bevy_window(&mut bevy_app);
     log::info!("Bevy App created!");
@@ -79,10 +104,32 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
     let app = unsafe { &mut *(obj as *mut App) };
-    crate::change_touch(app, x as f32, y as f32);
+    crate::change_touch(app, Some(vec2(x as f32, y as f32)));
+}
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn device_enter_touch(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_touch(app, Some(vec2(x as f32, y as f32)));
+    crate::change_last_touch(app, Some(vec2(x as f32, y as f32)));
+}
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn device_exit_touch(_env: *mut JNIEnv, _: jobject, obj: jlong) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::change_touch(app, None);
+    crate::change_last_touch(app, None);
 }
 
 
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn import_mesh(_env: *mut JNIEnv, _: jobject, obj: jlong, filepath: jstring) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    
+}
 
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]

@@ -5,17 +5,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
@@ -72,48 +68,48 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Canvas Width setting
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Canvas width", modifier = Modifier.weight(1f))
-                    // Text field for canvas width with number input
-                    TextField(
-                        value = appState.canvasWidth.toInt().toString(),
-                        onValueChange = {
-                            // Update the state only if the input is a valid number
-                            val newWidth = it.toFloatOrNull()
-                            if (newWidth != null) {
-                                onUpdateAppState(appState.copy(canvasWidth = newWidth))
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-                }
-
-                // Canvas Height setting
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Canvas height", modifier = Modifier.weight(1f))
-                    // Text field for canvas height with number input
-                    TextField(
-                        value = appState.canvasHeight.toInt().toString(),
-                        onValueChange = {
-                            // Update the state only if the input is a valid number
-                            val newHeight = it.toFloatOrNull()
-                            if (newHeight != null) {
-                                onUpdateAppState(appState.copy(canvasHeight = newHeight))
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-                }
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text(text = "Canvas width", modifier = Modifier.weight(1f))
+//                    // Text field for canvas width with number input
+//                    TextField(
+//                        value = appState.canvasWidth.toInt().toString(),
+//                        onValueChange = {
+//                            // Update the state only if the input is a valid number
+//                            val newWidth = it.toFloatOrNull()
+//                            if (newWidth != null) {
+//                                onUpdateAppState(appState.copy(canvasWidth = newWidth))
+//                            }
+//                        },
+//                        modifier = Modifier.weight(1f),
+//                        singleLine = true,
+//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+//                    )
+//                }
+//
+//                // Canvas Height setting
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text(text = "Canvas height", modifier = Modifier.weight(1f))
+//                    // Text field for canvas height with number input
+//                    TextField(
+//                        value = appState.canvasHeight.toInt().toString(),
+//                        onValueChange = {
+//                            // Update the state only if the input is a valid number
+//                            val newHeight = it.toFloatOrNull()
+//                            if (newHeight != null) {
+//                                onUpdateAppState(appState.copy(canvasHeight = newHeight))
+//                            }
+//                        },
+//                        modifier = Modifier.weight(1f),
+//                        singleLine = true,
+//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+//                    )
+//                }
 
                 // Background Color setting
                 Row(
@@ -156,12 +152,12 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Env. light strength", modifier = Modifier.weight(1f))
+                    Text(text = "Moving strength", modifier = Modifier.weight(1f))
                     Slider(
-                        value = appState.environmentLightStrength,
-                        onValueChange = { onUpdateAppState(appState.copy(environmentLightStrength = it)) },
+                        value = appState.moveStrength,
+                        onValueChange = { onUpdateAppState(appState.copy(moveStrength = it)) },
                         modifier = Modifier.weight(3f),
-                        valueRange = 0f..1f
+                        valueRange = 0f..0.02f
                     )
                 }
             }
@@ -177,8 +173,12 @@ fun SettingsScreen(
                     currentColor = currentColor,
                     onColorSelected = { newColor ->
                         when (selectedColorTarget) {
-                            ColorTarget.BackgroundColor -> onUpdateAppState(appState.copy(backgroundColor = newColor))
-                            ColorTarget.EnvironmentLight -> onUpdateAppState(appState.copy(environmentLightColor = newColor))
+                            ColorTarget.BackgroundColor -> {
+                                onUpdateAppState(appState.copy(backgroundColor = newColor))
+                            }
+                            ColorTarget.EnvironmentLight -> {
+                                onUpdateAppState(appState.copy(environmentLightColor = newColor))
+                            }
                             else -> {}
                         }
                         showColorPickerDialog = false
