@@ -62,6 +62,7 @@ data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
     val offsetY: Float = 0f,
+    val offsetZ: Float = 0f,
     val boxWidth: Float = 200f,
     val boxHeight: Float = 100f,
     val isBold: Boolean = false,
@@ -144,12 +145,14 @@ fun MyApp() {
                 onBack = { navController.navigateUp() },
                 onEditClick = { navController.navigate("edit") },
                 onTextClick = { navController.navigate("text") },
-                onTransformClick = { navController.navigate("transform") },
+//                onTransformClick = { navController.navigate("transform") },
                 onViewClick = { navController.navigate("view") },
-                onPolygonClick={navController.navigate("polygon")},
-                onShapeClick={navController.navigate("shape")},
-                onPolylineClick={navController.navigate("polyline")},
-                onCurveClick={navController.navigate("curve")},
+                onSphereClick = {navController.navigate("edit")},
+                onCubeClick = {navController.navigate("edit")},
+//                onPolygonClick={navController.navigate("polygon")},
+//                onShapeClick={navController.navigate("shape")},
+//                onPolylineClick={navController.navigate("polyline")},
+//                onCurveClick={navController.navigate("curve")},
                 appState = appState,
                 onUpdateAppState = { newState -> appState = newState }
             )
@@ -182,34 +185,34 @@ fun MyApp() {
                 onBack = { navController.navigateUp() }
             )
         }
-        composable("polygon") {
-            PolygonScreen(
-                appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
-                onBack = { navController.navigateUp() }
-            )
-        }
-        composable("shape") {
-            ShapeScreen(
-                appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
-                onBack = { navController.navigateUp() }
-            )
-        }
-        composable("polyline") {
-            PolylineScreen(
-                appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
-                onBack = { navController.navigateUp() }
-            )
-        }
-        composable("curve") {
-             CurveScreen(
-                appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
-                onBack = { navController.navigateUp() }
-            )
-        }
+//        composable("polygon") {
+//            PolygonScreen(
+//                appState = appState,
+//                onUpdateAppState = { newState -> appState = newState },
+//                onBack = { navController.navigateUp() }
+//            )
+//        }
+//        composable("shape") {
+//            ShapeScreen(
+//                appState = appState,
+//                onUpdateAppState = { newState -> appState = newState },
+//                onBack = { navController.navigateUp() }
+//            )
+//        }
+//        composable("polyline") {
+//            PolylineScreen(
+//                appState = appState,
+//                onUpdateAppState = { newState -> appState = newState },
+//                onBack = { navController.navigateUp() }
+//            )
+//        }
+//        composable("curve") {
+//             CurveScreen(
+//                appState = appState,
+//                onUpdateAppState = { newState -> appState = newState },
+//                onBack = { navController.navigateUp() }
+//            )
+//        }
     }
 }
 

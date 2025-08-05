@@ -127,8 +127,7 @@ fun TextScreen(
 
     Surface(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(insets),
+            .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Column(
