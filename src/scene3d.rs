@@ -56,7 +56,7 @@ impl Plugin for Scene3DPlugin {
                 move_strength: self.move_strength,
                 meshes: self.meshes.clone(),
                 camera_pos: self.camera_pos.clone(),
-                sketch: false,
+                sketch: true,
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -97,7 +97,7 @@ fn setup(
     ));
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 0.0, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
     // Spawn meshes from the config
@@ -112,11 +112,7 @@ fn setup(
     }
 
     // Test curve mesh
-    let ps = vec![
-        glam::Vec3::new(-1.0, 0.0, 0.0),
-        glam::Vec3::new(-0.5, 0.0, 0.0),
-        glam::Vec3::new(1.0, 0.5, 0.0),
-    ];
+    let ps = vec![glam::Vec3::new(-2., 0.0, 0.0), glam::Vec3::new(2., 4., 0.0)];
     let cc = curvify(&ps);
     let mm = meshify(&cc, glam::Vec3::new(-2.5, 4.5, 9.0));
     let rmm = to_bevy_mesh(&mm);
@@ -129,11 +125,16 @@ fn setup(
 }
 
 fn move_camera(
+    mut commands: Commands,
     mut query: Query<&mut Transform, With<Camera3d>>,
+    cameras: Query<(&Camera, &GlobalTransform)>,
     input: Res<TouchInput>,
     mut lastinput: ResMut<LastTouchInput>,
     mut orbit: ResMut<OrbitCamera>,
-    mut config: ResMut<MyPluginConfig>,
+    config: Res<MyPluginConfig>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    windows: Query<&Window>,
 ) {
     if config.sketch {
         // If sketch mode is enabled, we don't move the camera
@@ -141,6 +142,45 @@ fn move_camera(
         if let Some(cpos) = input.touch {
             if let Some(lastpos) = lastinput.touch {
                 let delta = cpos - lastpos;
+            } else {
+                // Fisrt time
+                let window = windows.single().unwrap();
+                let (camera, camera_transform) = cameras.single().unwrap();
+                let ccpos = cpos / window.scale_factor();
+
+                if let Ok(ray) = camera.viewport_to_world(camera_transform, ccpos) {
+                    let cam_pos = camera_transform.translation();
+                    let cam_forward = camera_transform.forward() * 10.0; // +Z in Bevy
+
+                    // Plane 1 unit in front of camera
+                    let plane_origin = cam_pos + cam_forward;
+                    let plane_normal = cam_forward;
+
+                    let ray_origin = ray.origin;
+                    let ray_dir = ray.direction;
+
+                    // Ray-plane intersection: (P - plane_origin) ⋅ n = 0
+                    // Solve for t: (O + tD - plane_origin) ⋅ n = 0
+                    let denom = ray_dir.dot(plane_normal);
+                    let mut mshp = Sphere::default();
+                    mshp.radius = 0.5;
+                    if denom.abs() > f32::EPSILON {
+                        let t = (plane_origin - ray_origin).dot(plane_normal) / denom;
+                        if t >= 0.0 {
+                            let intersection = ray_origin + ray_dir * t;
+                            commands.spawn((
+                                Mesh3d(meshes.add(Mesh::from(mshp.mesh().ico(5).unwrap()))),
+                                MeshMaterial3d(materials.add(Color::srgb_u8(200, 200, 200))),
+                                Transform::from_translation(intersection),
+                            ));
+                            log::info!("Hit point 1 unit in front of camera: {:?}", intersection);
+                        } else {
+                            log::info!("Intersection behind the camera");
+                        }
+                    } else {
+                        log::info!("Ray is parallel to the plane");
+                    }
+                }
             }
             lastinput.touch = Some(cpos);
         }
@@ -162,9 +202,11 @@ fn move_camera(
                     );
 
                     // Convert spherical coordinates to cartesian
-                    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin() + config.camera_pos[0];
+                    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin()
+                        + config.camera_pos[0];
                     let y = orbit.radius * orbit.elevation.sin() + config.camera_pos[1];
-                    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos() + config.camera_pos[2];
+                    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos()
+                        + config.camera_pos[2];
 
                     let position = Vec3::new(x, y, z);
                     let target = Vec3::ZERO;

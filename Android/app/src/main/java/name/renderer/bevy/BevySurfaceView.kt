@@ -70,7 +70,7 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-//                Log.d("Touch", "ACTION_DOWN at: " + event.x + ", " + event.y)
+                Log.d("Touch", "ACTION_DOWN at: " + event.x + ", " + event.y)
                 if (bevy_app != Long.MAX_VALUE) {
                     RustBridge.device_enter_touch(bevy_app, event.x , event.y )
                 }
@@ -111,8 +111,9 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                 globalAppState?.let { appState ->
                     val initopts = packAppInitOpts(appState)
                     Log.i("camera", appState.scene.cameraPos.toString())
-                    val json = Json.encodeToString(initopts)
-                    bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, json)
+                    val json = Json { encodeDefaults = true }
+                    val jsonout = json.encodeToString(initopts)
+                    bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, jsonout)
                 }
 
             }

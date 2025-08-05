@@ -22,7 +22,7 @@ pub use ffi::*;
 
 use crate::scene3d::{LastTouchInput, MeshConfig, TouchInput};
 
-// #[cfg(target_os = "android")]
+#[cfg(target_os = "android")]
 mod android_asset_io;
 
 mod breakout_game;

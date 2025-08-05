@@ -54,7 +54,7 @@ data class BObject(
 @Serializable
 data class Scene(
     val objects : List<BObject> = listOf(),
-    val cameraPos : List<Float> = listOf(0f, 0f, 1f)
+    val cameraPos : List<Float> = listOf(0f, 0f, 0f)
 )
 
 // Final AppState data class with all properties
@@ -95,7 +95,7 @@ data class AppState(
     val polylineOpacity: Float = 1.0f,
     val curveColor: Color=Color.Blue,
     val curveOpacity: Float=1.0f,
-    val scene: Scene = Scene(cameraPos = listOf(0f, 0f, 1f))
+    val scene: Scene = Scene()
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -272,7 +272,8 @@ fun SurfaceCard(
                         val bytes = inputStream.readBytes()
                         val text = String(bytes, Charsets.UTF_8)
                         // Update file
-                        val myopts = Json.decodeFromString<AppInitOpts>(text)
+                        val json = Json { encodeDefaults = true }
+                        val myopts = json.decodeFromString<AppInitOpts>(text)
                         onUpdateAppState(appState.copy(scene = myopts.scene,
                             backgroundColor = listToColor(myopts.backgroundColor),
                             environmentLightColor = listToColor(myopts.environmentLightColor),
