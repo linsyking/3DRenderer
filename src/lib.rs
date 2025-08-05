@@ -21,7 +21,7 @@ pub use ffi::*;
 
 use crate::scene3d::{LastTouchInput, TouchInput};
 
-#[cfg(target_os = "android")]
+// #[cfg(target_os = "android")]
 mod android_asset_io;
 
 mod breakout_game;
@@ -29,6 +29,14 @@ mod lighting_demo;
 mod scene3d;
 mod shapes_demo;
 mod stepping;
+
+
+#[derive(Deserialize, Debug)]
+struct AppInitOpts {
+    bg_color: String,
+    light_color: f32,
+    move_strength: f32,
+}
 
 #[allow(unused_variables)]
 pub fn create_breakout_app(

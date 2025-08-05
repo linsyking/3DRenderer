@@ -11,6 +11,22 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.compose.ui.graphics.Color
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+
+@Serializable
+data class AppInitOpts (
+    val backgroundColor: List<Float>,
+    val environmentLightColor: List<Float>,
+    val moveStrength: Float
+)
+
+fun colorToList (color: Color) : List<Float> {
+    return listOf<Float>(color.red, color.green, color.blue)
+}
 
 class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
     private var bevy_app : Long = Long.MAX_VALUE
@@ -83,17 +99,13 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                 val scaleFactor: Float = resources.displayMetrics.density
                 // Configure Canvas
                 globalAppState?.let { appState ->
-                    val bg = appState.backgroundColor
-                    val t = appState.environmentLightColor
-                    bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor,
-                        bg.red,
-                        bg.green,
-                        bg.blue,
-                        t.red,
-                        t.green,
-                        t.blue,
-                        appState.environmentLightStrength
+                    val initopts = AppInitOpts(
+                        backgroundColor = colorToList(appState.backgroundColor),
+                        environmentLightColor = colorToList(appState.environmentLightColor),
+                        moveStrength = appState.moveStrength
                         )
+                    val json = Json.encodeToString(initopts)
+                    bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, json)
                 }
 
             }

@@ -4,7 +4,8 @@ use android_logger::Config;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use jni::JNIEnv;
-use jni::sys::{jfloat, jlong, jobject};
+use jni::objects::JString;
+use jni::sys::{jfloat, jlong, jobject, jstring};
 use jni_fn::jni_fn;
 use log::LevelFilter;
 
@@ -31,28 +32,36 @@ pub fn init_ndk_context(env: JNIEnv, _: jobject, context: jobject) {
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn create_bevy_app(
-    env: *mut JNIEnv,
+    env: *mut jni::sys::JNIEnv,
     _: jobject,
     asset_manager: jobject,
     surface: jobject,
     scale_factor: jfloat,
-    bg_r: jfloat,
-    bg_g: jfloat,
-    bg_b: jfloat,
-    l_r: jfloat,
-    l_g: jfloat,
-    l_b: jfloat,
-    ms: jfloat,
+    opts: jstring,
 ) -> jlong {
-    let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env as _, asset_manager) };
+    let mut env = unsafe { JNIEnv::from_raw(env).expect("Invalid JNIEnv pointer") };
+
+    // Convert opts (jstring) into safe JString wrapper
+    let jstr = unsafe  { JString::from_raw(opts) } ;
+
+    // Convert Java string to Rust String
+    let rust_str: String = env
+        .get_string(&jstr)
+        .expect("Failed to get string")
+        .into();
+    
+    log::info!("Creating Bevy App with options: {}", rust_str);
+    let a_asset_manager = unsafe { ndk_sys::AAssetManager_fromJava(env.get_native_interface() as _, asset_manager) };
+
     let android_obj = AndroidViewObj {
-        native_window: NativeWindow::new(env, surface),
+        native_window: NativeWindow::new(env.get_native_interface() as *mut _, surface),
         scale_factor: scale_factor as _,
     };
-    let bg_color = Color::srgb(bg_r as f32, bg_g as f32, bg_b as f32);
-    let light_color = Color::srgb(l_r as f32, l_g as f32, l_b as f32);
 
-    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, ms as f32);
+    let bg_color = Color::srgb(1., 1., 1.);
+    let light_color = Color::srgb(1., 1., 1.);
+
+    let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), bg_color, light_color, 0.01);
     bevy_app.insert_non_send_resource(android_obj);
     crate::app_view::create_bevy_window(&mut bevy_app);
     log::info!("Bevy App created!");
