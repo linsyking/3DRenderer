@@ -43,8 +43,7 @@ fun EditScreen(
 
     Surface(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(insets),
+            .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Column(
@@ -155,8 +154,8 @@ fun EditScreen(
                 // Position Z
                 PositionControl(
                     label = "Position Z",
-                    value = 0f, // Replace with appState.offsetZ if exists
-                    onValueChange = { /* Add to AppState if needed */ },
+                    value = appState.offsetZ,
+                    onValueChange = { onUpdateAppState(appState.copy(offsetZ = it))},
                     range = -100f..100f
                 )
             }

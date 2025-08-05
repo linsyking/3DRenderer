@@ -56,6 +56,7 @@ data class AppState(
     val text: String = "",
     val offsetX: Float = 0f,
     val offsetY: Float = 0f,
+    val offsetZ: Float = 0f,
     val boxWidth: Float = 200f,
     val boxHeight: Float = 100f,
     val isBold: Boolean = false,

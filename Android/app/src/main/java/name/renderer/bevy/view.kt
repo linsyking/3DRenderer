@@ -47,8 +47,7 @@ fun ViewScreen(
 
     Surface(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(insets),
+            .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -82,10 +81,10 @@ fun ViewScreen(
                             contentDescription = "Restart View",
                             modifier = Modifier.size(20.dp)
                         )
-                        Text(
-                            text = "Restart",
-                            fontSize = 10.sp
-                        )
+//                        Text(
+//                            text = "Restart",
+//                            fontSize = 10.sp
+//                        )
                     }
                 }
             )
