@@ -20,7 +20,7 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
-use crate::scene3d::{LastTouchInput, TouchInput};
+use crate::scene3d::{LastTouchInput, MeshConfig, TouchInput};
 
 // #[cfg(target_os = "android")]
 mod android_asset_io;
@@ -35,14 +35,25 @@ mod file_io;
 mod geometry;
 
 #[derive(Deserialize, Debug)]
-struct MeshConfig {
+struct ObjConfig {
     data: String,
+    #[serde(rename = "type")]
+    objtype: String,
+    label: String,
+    #[serde(default)]
+    color: Vec<f32>,
+    #[serde(default)]
+    pos: Vec<f32>,
+    scale: f32,
 }
 
 #[derive(Deserialize, Debug)]
 struct SceneConfig {
     #[serde(default)]
-    meshes: Vec<MeshConfig>,
+    objects: Vec<ObjConfig>,
+
+    #[serde(default, rename = "cameraPos")]
+    camera_pos: Vec<f32>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -141,22 +152,23 @@ pub fn create_breakout_app(
 
 pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
     let mut meshes = vec![];
-    for mesh_config in opts.scene.meshes {
+    for mesh_config in opts.scene.objects {
         let mesh_data = mesh_config.data;
         // log::info!("Importing mesh data: {}", mesh_data);
         let res = file_io::load_obj(mesh_data).unwrap();
-        log::info!("Mesh normals {:?}", res.normals);
         let mymesh = file_io::to_bevy_mesh(&res);
-        meshes.push(mymesh);
+        let mm = MeshConfig {
+            mesh: mymesh,
+            transform: Transform::from_xyz(
+                mesh_config.pos[0],
+                mesh_config.pos[1],
+                mesh_config.pos[2],
+            )
+            .with_scale(Vec3::splat(mesh_config.scale)),
+            color: Color::srgb(mesh_config.color[0], mesh_config.color[1], mesh_config.color[2]),
+        };
+        meshes.push(mm);
     }
-    // let output_obj = file_io::export_obj_to_string(&res);
-    // log::info!("OBJ Exported: {}", output_obj);
-    // app.world_mut().insert_resource(SpawnMesh {
-    //     mesh: String::from("test"),
-    // });
-    // let mut touch_input = app.world_mut().resource_mut::<SpawnMesh>();
-    // touch_input.mesh = String::from("test22");
-    // log::info!("Import mesh data size: {}", data.meshes.len());
 
     let light = opts.light_color;
     let env_lightcolor = Color::srgb(light[0], light[1], light[2]);
@@ -166,6 +178,7 @@ pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
         env_lightcolor: env_lightcolor,
         move_strength: move_strength,
         meshes: meshes,
+        camera_pos: opts.scene.camera_pos,
     }
 }
 

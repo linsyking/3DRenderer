@@ -57,8 +57,9 @@ pub fn create_bevy_app(
         scale_factor: scale_factor as _,
     };
 
-    // log::info!("Creating Bevy App with options: {}", rust_str);
+    log::info!("Creating Bevy App with options: {}", rust_str);
     let state: AppInitOpts = serde_json::from_str(rust_str.as_str()).unwrap();
+    log::info!("DEC state {:?}", state);
 
     let mut bevy_app = crate::create_breakout_app(AndroidAssetManager(a_asset_manager), state);
     bevy_app.insert_non_send_resource(android_obj);

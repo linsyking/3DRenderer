@@ -2,7 +2,6 @@ package name.renderer.bevy
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -42,13 +41,19 @@ import kotlin.math.roundToInt
 
 
 @Serializable
-data class Mesh(
-    val data: String
+data class BObject(
+    val data: String,
+    val type: String,
+    val label: String,
+    val color: List<Float>,
+    val pos: List<Float>,
+    val scale: Float,
 )
 
 @Serializable
 data class Scene(
-    val meshes : List<Mesh> = listOf<Mesh>()
+    val objects : List<BObject> = listOf(),
+    val cameraPos : List<Float> = listOf()
 )
 
 // Final AppState data class with all properties
@@ -234,9 +239,17 @@ fun SurfaceCard(
                         val bytes = inputStream.readBytes()
                         val text = String(bytes, Charsets.UTF_8)
                         // Update state
-                        val oldMeshes = appState.scene.meshes
-                        val newMeshes = oldMeshes + Mesh(data = text)
-                        onUpdateAppState(appState.copy(scene = Scene(meshes = newMeshes)))
+                        val oldObjs = appState.scene.objects
+                        val newObjs = oldObjs + BObject(
+                            data = text,
+                            color = listOf(1.0f, 1.0f, 1.0f),
+                            type = "mesh",
+                            label = "none",
+                            pos = listOf(0.0f, 0.0f, 0.0f),
+                            scale = 1f
+                        )
+                        val oldscene = appState.scene
+                        onUpdateAppState(appState.copy(scene = oldscene.copy(objects = newObjs)))
                     }
                 }
             }
@@ -302,7 +315,7 @@ fun SurfaceCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    Text(text = "Menu", fontSize = 10.sp)
+//                    Text(text = "Menu", fontSize = 10.sp)
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
@@ -351,11 +364,11 @@ fun SurfaceCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    Text(text = "Settings", fontSize = 10.sp)
+//                    Text(text = "Settings", fontSize = 10.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+//            Spacer(modifier = Modifier.height(8.dp))
 
             Box(
                 modifier = Modifier
@@ -381,7 +394,7 @@ fun SurfaceCard(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
+//                .padding(bottom = 16.dp)
         ) {
             Column(
                 modifier = Modifier.clickable { navController.navigate("toolbox") },
@@ -391,7 +404,7 @@ fun SurfaceCard(
                     painter = painterResource(id = R.drawable.toolbox),
                     contentDescription = "Toolbox"
                 )
-                Text(text = "Toolbox", style = MaterialTheme.typography.bodySmall)
+//                Text(text = "Toolbox", style = MaterialTheme.typography.bodySmall)
             }
         }
     }

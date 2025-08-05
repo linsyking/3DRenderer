@@ -12,6 +12,13 @@ pub struct LastTouchInput {
     pub touch: Option<Vec2>,
 }
 
+#[derive(Debug, Clone)]
+pub struct MeshConfig {
+    pub mesh: Mesh,
+    pub transform: Transform,
+    pub color: Color,
+}
+
 #[derive(Resource)]
 struct OrbitCamera {
     azimuth: f32,   // Horizontal angle
@@ -23,13 +30,15 @@ struct OrbitCamera {
 pub struct MyPluginConfig {
     pub env_lightcolor: Color,
     pub move_strength: f32,
-    pub meshes: Vec<Mesh>,
+    pub meshes: Vec<MeshConfig>,
+    pub camera_pos: Vec<f32>,
 }
 
 pub struct Scene3DPlugin {
     pub env_lightcolor: Color,
     pub move_strength: f32,
-    pub meshes: Vec<Mesh>,
+    pub meshes: Vec<MeshConfig>,
+    pub camera_pos: Vec<f32>,
 }
 
 impl Plugin for Scene3DPlugin {
@@ -40,6 +49,7 @@ impl Plugin for Scene3DPlugin {
                 env_lightcolor: self.env_lightcolor,
                 move_strength: self.move_strength,
                 meshes: self.meshes.clone(),
+                camera_pos: self.camera_pos.clone(),
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -84,13 +94,13 @@ fn setup(
     ));
 
     // Spawn meshes from the config
-    for mesh in &config.meshes {
-        log::info!("Spawning mesh: {:?}", mesh);
-        let mesh_handle = meshes.add(mesh.clone());
+    for meshconfig in &config.meshes {
+        // log::info!("Spawning mesh: {:?}", mesh);
+        let mesh_handle = meshes.add(meshconfig.mesh.clone());
         commands.spawn((
             Mesh3d(mesh_handle),
-            MeshMaterial3d(materials.add(Color::srgb_u8(255, 200, 255))),
-            Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(10.0)),
+            MeshMaterial3d(materials.add(meshconfig.color)),
+            meshconfig.transform.clone(),
         ));
     }
 }
