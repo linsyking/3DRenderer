@@ -30,7 +30,7 @@ mod shapes_demo;
 mod scene3d;
 mod stepping;
 
-mod export;
+mod file_io;
 mod geometry;
 
 #[allow(unused_variables)]

@@ -1,5 +1,5 @@
 use bevy::core_pipeline::prepass::NormalPrepass;
-use glam::{Vec3};
+use glam::{Vec2, Vec3};
 
 pub struct Mesh {
     pub positions: Vec<Vec3>,
