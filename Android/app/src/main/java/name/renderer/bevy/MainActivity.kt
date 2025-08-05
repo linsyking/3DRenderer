@@ -36,12 +36,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
 
 
 @Serializable
 data class Mesh(
-    val data: String = ""
+    val data: String
 )
 
 @Serializable
@@ -71,7 +73,7 @@ data class AppState(
     val environmentLightColor: Color = Color.White,
     val moveStrength: Float = 0.01f,
     val fontName: String = "Times",
-        val viewScale: Float = 1.0f,
+    val viewScale: Float = 1.0f,
     val viewOffsetX: Float = 0f,
     val viewOffsetY: Float = 0f,
     val polygonColor: Color = Color.Blue,
@@ -86,7 +88,7 @@ data class AppState(
     val polylineOpacity: Float = 1.0f,
     val curveColor: Color=Color.Blue,
     val curveOpacity: Float=1.0f,
-    val scene: Scene = Scene(meshes = listOf())
+    val scene: Scene = Scene()
 )
 
 // Global variable for BevySurfaceView to share across Composables
@@ -205,6 +207,10 @@ fun MyApp() {
     }
 }
 
+fun listToColor(cs: List<Float>) : Color {
+    return Color(red = cs[0], green = cs[1], blue = cs[2])
+}
+
 // The main surface card of the application
 @Composable
 fun SurfaceCard(
@@ -216,8 +222,7 @@ fun SurfaceCard(
     val insets = WindowInsets.systemBars.asPaddingValues()
     var expanded by remember { mutableStateOf(false) }
 
-    // Launcher for OPENING files (Open Scene, Import Mesh)
-    val openDocumentLauncher = rememberLauncherForActivityResult(
+    val importMeshLaunch = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri: Uri? ->
             uri?.let {
@@ -227,10 +232,10 @@ fun SurfaceCard(
                     surfaceView ->
                     inputStream?.let { inputStream ->
                         val bytes = inputStream.readBytes()
-                        val string = bytes.toString()
+                        val text = String(bytes, Charsets.UTF_8)
                         // Update state
                         val oldMeshes = appState.scene.meshes
-                        val newMeshes = oldMeshes + Mesh(data = string)
+                        val newMeshes = oldMeshes + Mesh(data = text)
                         onUpdateAppState(appState.copy(scene = Scene(meshes = newMeshes)))
                     }
                 }
@@ -238,13 +243,42 @@ fun SurfaceCard(
         }
     )
 
+    val importFileLaunch = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                // User has selected a file.
+                val inputStream = context.contentResolver.openInputStream(uri)
+                surfaceView?.let {
+                        surfaceView ->
+                    inputStream?.let { inputStream ->
+                        val bytes = inputStream.readBytes()
+                        val text = String(bytes, Charsets.UTF_8)
+                        // Update file
+                        val myopts = Json.decodeFromString<AppInitOpts>(text)
+                        onUpdateAppState(appState.copy(scene = myopts.scene,
+                            backgroundColor = listToColor(myopts.backgroundColor),
+                            environmentLightColor = listToColor(myopts.environmentLightColor),
+                            moveStrength = myopts.moveStrength
+                        ))
+                    }
+                }
+            }
+        }
+    )
+
     // Launcher for SAVING files (Save Scene, Export Image)
-    val createDocumentLauncher = rememberLauncherForActivityResult(
+    val exportSceneLaunch = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("*/*"),
         onResult = { uri: Uri? ->
             uri?.let {
                 // User has created a file.
-                // TODO: Use this URI to save your scene or image data.
+                val outputStream = context.contentResolver.openOutputStream(uri)
+                val opts = packAppInitOpts(appState)
+                val text = Json.encodeToString(opts)
+                outputStream?.use {
+                    it.write(text.toByteArray(Charsets.UTF_8))
+                }
             }
         }
     )
@@ -276,28 +310,21 @@ fun SurfaceCard(
                         DropdownMenuItem(
                             text = { Text("Open Scene") },
                             onClick = {
-                                openDocumentLauncher.launch(arrayOf("*/*"))
+                                importFileLaunch.launch(arrayOf("*/*"))
                                 expanded = false
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Save Scene") },
                             onClick = {
-                                createDocumentLauncher.launch("MyScene.scene")
+                                exportSceneLaunch.launch("MyScene.scene")
                                 expanded = false
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Import Mesh") },
                             onClick = {
-                                openDocumentLauncher.launch(arrayOf("*/*"))
-                                expanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Export Image") },
-                            onClick = {
-                                createDocumentLauncher.launch("MyImage.png")
+                                importMeshLaunch.launch(arrayOf("*/*"))
                                 expanded = false
                             }
                         )

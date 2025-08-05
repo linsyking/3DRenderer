@@ -25,6 +25,15 @@ data class AppInitOpts (
     val scene: Scene,
 )
 
+fun packAppInitOpts(appState: AppState) : AppInitOpts {
+    return AppInitOpts(
+        backgroundColor = colorToList(appState.backgroundColor),
+        environmentLightColor = colorToList(appState.environmentLightColor),
+        moveStrength = appState.moveStrength,
+        scene = appState.scene
+    )
+}
+
 fun colorToList (color: Color) : List<Float> {
     return listOf<Float>(color.red, color.green, color.blue)
 }
@@ -100,12 +109,7 @@ class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
                 val scaleFactor: Float = resources.displayMetrics.density
                 // Configure Canvas
                 globalAppState?.let { appState ->
-                    val initopts = AppInitOpts(
-                        backgroundColor = colorToList(appState.backgroundColor),
-                        environmentLightColor = colorToList(appState.environmentLightColor),
-                        moveStrength = appState.moveStrength,
-                        scene = appState.scene
-                        )
+                    val initopts = packAppInitOpts(appState)
                     val json = Json.encodeToString(initopts)
                     bevy_app = RustBridge.create_bevy_app(this.context.assets, h.surface, scaleFactor, json)
                 }

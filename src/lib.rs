@@ -143,7 +143,9 @@ pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
     let mut meshes = vec![];
     for mesh_config in opts.scene.meshes {
         let mesh_data = mesh_config.data;
+        // log::info!("Importing mesh data: {}", mesh_data);
         let res = file_io::load_obj(mesh_data).unwrap();
+        log::info!("Mesh normals {:?}", res.normals);
         let mymesh = file_io::to_bevy_mesh(&res);
         meshes.push(mymesh);
     }

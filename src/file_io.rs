@@ -10,17 +10,17 @@ use bevy::render::render_resource::PrimitiveTopology;
 pub fn to_bevy_mesh(mesh: &GMesh) -> Mesh {
     let mut bevy_mesh = Mesh::new(
         PrimitiveTopology::TriangleList,
-        RenderAssetUsages::MAIN_WORLD,
+        RenderAssetUsages::default(),
     );
 
     // Convert positions to Vec<[f32; 3]>
     let positions: Vec<[f32; 3]> = mesh.positions.iter().map(|v| [v.x, v.y, v.z]).collect();
-
-    // Normals are optional
-    let normals: Option<Vec<[f32; 3]>> = if !mesh.normals.is_empty() {
-        Some(mesh.normals.iter().map(|n| [n.x, n.y, n.z]).collect())
+    let vertex_count = positions.len();
+    // Use provided normals or a default
+    let normals: Vec<[f32; 3]> = if !mesh.normals.is_empty() {
+        mesh.normals.iter().map(|n| [n.x, n.y, n.z]).collect()
     } else {
-        None
+        vec![[0.0, 1.0, 0.0]; vertex_count]
     };
 
     // UVs are optional
@@ -35,9 +35,7 @@ pub fn to_bevy_mesh(mesh: &GMesh) -> Mesh {
         Mesh::ATTRIBUTE_POSITION,
         VertexAttributeValues::from(positions),
     );
-    if let Some(n) = normals {
-        bevy_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, VertexAttributeValues::from(n));
-    }
+    bevy_mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, VertexAttributeValues::from(normals));
     if let Some(t) = uvs {
         bevy_mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, VertexAttributeValues::from(t));
     }

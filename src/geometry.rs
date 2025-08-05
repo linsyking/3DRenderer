@@ -2,6 +2,7 @@ use glam::{Vec2, Vec3};
 use nalgebra::{DMatrix, DVector};
 use std::f32::consts::PI;
 
+#[derive(Debug, Clone)]
 pub struct Mesh {
     pub positions: Vec<Vec3>,
     pub normals: Vec<Vec3>,

@@ -2,7 +2,6 @@
 
 use bevy::prelude::*;
 
-
 #[derive(Resource, Default)]
 pub struct TouchInput {
     pub touch: Option<Vec2>,
@@ -24,6 +23,7 @@ struct OrbitCamera {
 pub struct MyPluginConfig {
     pub env_lightcolor: Color,
     pub move_strength: f32,
+    pub meshes: Vec<Mesh>,
 }
 
 pub struct Scene3DPlugin {
@@ -39,6 +39,7 @@ impl Plugin for Scene3DPlugin {
             .insert_resource(MyPluginConfig {
                 env_lightcolor: self.env_lightcolor,
                 move_strength: self.move_strength,
+                meshes: self.meshes.clone(),
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,
@@ -58,11 +59,11 @@ fn setup(
     config: Res<MyPluginConfig>,
 ) {
     // cube
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
+    // commands.spawn((
+    //     Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+    //     MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
+    //     Transform::from_xyz(0.0, 0.0, 0.0),
+    // ));
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::default().mesh().size(100.0, 100.0))),
         MeshMaterial3d(materials.add(Color::srgb_u8(200, 200, 200))),
@@ -81,6 +82,17 @@ fn setup(
         Camera3d::default(),
         Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+
+    // Spawn meshes from the config
+    for mesh in &config.meshes {
+        log::info!("Spawning mesh: {:?}", mesh);
+        let mesh_handle = meshes.add(mesh.clone());
+        commands.spawn((
+            Mesh3d(mesh_handle),
+            MeshMaterial3d(materials.add(Color::srgb_u8(255, 200, 255))),
+            Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(10.0)),
+        ));
+    }
 }
 
 fn move_camera(
