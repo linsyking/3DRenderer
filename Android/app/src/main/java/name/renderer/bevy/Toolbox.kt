@@ -26,12 +26,12 @@ fun ToolboxScreen(
     onBack: () -> Unit,
     onEditClick: () -> Unit,
     onTextClick: () -> Unit,
-    onTransformClick: () -> Unit,
+//    onTransformClick: () -> Unit,
     onViewClick: () -> Unit,
-    onPolygonClick: () -> Unit,
-    onShapeClick: () -> Unit,
-    onPolylineClick: () -> Unit,
-    onCurveClick: () -> Unit,
+    onCubeClick: () -> Unit,
+    onSphereClick: () -> Unit,
+//    onPolylineClick: () -> Unit,
+//    onCurveClick: () -> Unit,
     appState: AppState, // Now receives the AppState.
     onUpdateAppState: (AppState) -> Unit // Now receives the state update callback.
 ) {
@@ -96,20 +96,22 @@ fun ToolboxScreen(
                         // All icons are now the specific drawable resources
                         ToolboxItem("text", R.drawable.text, onClick = onTextClick),
                         ToolboxItem("light", R.drawable.light, onClick = { /* TODO: Handle light */ }),
-                        ToolboxItem("transform", R.drawable.transform, onClick = onTransformClick),
+                        ToolboxItem("Cube", R.drawable.cube, onClick=onCubeClick),
+                        ToolboxItem("Sphere", R.drawable.sphere,onClick=onSphereClick),
+//                        ToolboxItem("transform", R.drawable.transform, onClick = onTransformClick),
                     )
                 )
 
                 // Row 3: Polygon, Polyline, Shape, Curve
-                ToolboxRow(
-                    items = listOf(
-                        // All icons are now the specific drawable resources
-                        ToolboxItem("polygon", R.drawable.polygon, onClick = onPolygonClick),
-                        ToolboxItem("polyline", R.drawable.polyline, onClick = onPolylineClick),
-                        ToolboxItem("shape", R.drawable.shape, onClick = onShapeClick),
-                        ToolboxItem("curve", R.drawable.curve, onClick = onCurveClick),
-                    )
-                )
+//                ToolboxRow(
+//                    items = listOf(
+//                         All icons are now the specific drawable resources
+//                        ToolboxItem("polygon", R.drawable.polygon, onClick = onPolygonClick),
+//                        ToolboxItem("polyline", R.drawable.polyline, onClick = onPolylineClick),
+//                        ToolboxItem("shape", R.drawable.shape, onClick = onShapeClick),
+//                        ToolboxItem("curve", R.drawable.curve, onClick = onCurveClick),
+//                    )
+//                )
             }
         }
     }
