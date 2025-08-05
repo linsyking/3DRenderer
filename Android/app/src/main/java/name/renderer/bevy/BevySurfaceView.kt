@@ -39,7 +39,7 @@ fun colorToList (color: Color) : List<Float> {
 }
 
 class BevySurfaceView : SurfaceView, SurfaceHolder.Callback2 {
-    private var bevy_app : Long = Long.MAX_VALUE
+    var bevy_app : Long = Long.MAX_VALUE
     private var ndk_inited = false
     private var sensorManager: SensorManager? = null
     private var mSensor: Sensor? = null

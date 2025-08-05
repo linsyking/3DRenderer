@@ -25,10 +25,10 @@ pub struct MeshConfig {
 }
 
 #[derive(Resource)]
-struct OrbitCamera {
-    azimuth: f32,   // Horizontal angle
-    elevation: f32, // Vertical angle
-    radius: f32,    // Distance from the target
+pub struct OrbitCamera {
+    pub azimuth: f32,   // Horizontal angle
+    pub elevation: f32, // Vertical angle
+    pub radius: f32,    // Distance from the target
 }
 
 #[derive(Resource)]
@@ -56,7 +56,7 @@ impl Plugin for Scene3DPlugin {
                 move_strength: self.move_strength,
                 meshes: self.meshes.clone(),
                 camera_pos: self.camera_pos.clone(),
-                sketch: true,
+                sketch: false,
             })
             .insert_resource(OrbitCamera {
                 azimuth: 0.0,

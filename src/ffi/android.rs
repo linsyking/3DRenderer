@@ -93,6 +93,14 @@ pub fn device_motion(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, _y: j
     }
 }
 
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn update_camera_offset(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat, z: jfloat) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    crate::update_camera(app, Vec3::new(x as f32, y as f32, z as f32));
+}
+
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn device_touch_move(_env: *mut JNIEnv, _: jobject, obj: jlong, x: jfloat, y: jfloat) {

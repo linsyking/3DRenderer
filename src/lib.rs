@@ -20,7 +20,7 @@ mod ffi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use ffi::*;
 
-use crate::scene3d::{LastTouchInput, MeshConfig, TouchInput};
+use crate::scene3d::{LastTouchInput, MeshConfig, OrbitCamera, TouchInput};
 
 #[cfg(target_os = "android")]
 mod android_asset_io;
@@ -150,6 +150,26 @@ pub fn create_breakout_app(
     bevy_app
 }
 
+pub(crate) fn update_camera(app: &mut App, pos: Vec3) {
+    let orbit = app.world().resource::<OrbitCamera>();
+    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin() + pos[0];
+    let y = orbit.radius * orbit.elevation.sin() + pos[1];
+    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos() + pos[2];
+
+    let mut camq = app
+        .world_mut()
+        .query_filtered::<&mut Transform, With<Camera3d>>();
+    for mut transform in camq.iter_mut(app.world_mut()) {
+        log::info!("Camera position: {:?}", transform.translation);
+
+        // Convert spherical coordinates to cartesian
+        let position = Vec3::new(x, y, z);
+        let target = Vec3::ZERO;
+        transform.translation = position;
+        transform.look_at(target, Vec3::Y);
+    }
+}
+
 pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
     let mut meshes = vec![];
     for mesh_config in opts.scene.objects {
@@ -165,7 +185,11 @@ pub(crate) fn to_plugin_opts(opts: AppInitOpts) -> scene3d::Scene3DPlugin {
                 mesh_config.pos[2],
             )
             .with_scale(Vec3::splat(mesh_config.scale)),
-            color: Color::srgb(mesh_config.color[0], mesh_config.color[1], mesh_config.color[2]),
+            color: Color::srgb(
+                mesh_config.color[0],
+                mesh_config.color[1],
+                mesh_config.color[2],
+            ),
         };
         meshes.push(mm);
     }

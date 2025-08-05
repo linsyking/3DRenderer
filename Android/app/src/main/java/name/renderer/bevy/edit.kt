@@ -24,19 +24,22 @@ fun EditScreen(
     appState: AppState,
     onUpdateAppState: (AppState) -> Unit
 ) {
-    val insets = WindowInsets.systemBars.asPaddingValues()
     var showColorDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
-    var selectedMesh by remember { mutableStateOf("Mesh 1") }
-    val meshOptions = listOf("Mesh 1", "Mesh 2", "Mesh 3") // Placeholder
+    var selectedMesh by remember { mutableIntStateOf(0) }
+    val meshOptions = List(appState.scene.objects.size) { i -> "Mesh ${i + 1}" }
 
     if (showColorDialog) {
         ColorPickerDialog(
             currentColor = appState.meshColor,
             onDismiss = { showColorDialog = false },
-            onColorSelected = {
-                onUpdateAppState(appState.copy(meshColor = it))
+            onColorSelected = { mcolor ->
+                onUpdateAppState(appState.copy(meshColor = mcolor))
                 showColorDialog = false
+                val objectdd = appState.scene.objects[selectedMesh]
+                val nobj = objectdd.copy(color = colorToList(mcolor))
+                val nobjs = appState.scene.objects.mapIndexed {  i, v -> if (i == selectedMesh) nobj else v  }
+                onUpdateAppState(appState.copy(scene = appState.scene.copy(objects = nobjs)))
             }
         )
     }
@@ -77,7 +80,7 @@ fun EditScreen(
                     TextField(
                         modifier = Modifier.menuAnchor(),
                         readOnly = true,
-                        value = selectedMesh,
+                        value = meshOptions[selectedMesh],
                         onValueChange = {},
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -87,11 +90,11 @@ fun EditScreen(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        meshOptions.forEach { option ->
+                        meshOptions.forEachIndexed { index, option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    selectedMesh = option
+                                    selectedMesh = index
                                     expanded = false
                                 }
                             )
@@ -100,20 +103,20 @@ fun EditScreen(
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                AndroidView(
-                    factory = { ctx ->
-                        surfaceView ?: BevySurfaceView(context = ctx).also { surfaceView = it }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .weight(1f)
+//                    .background(Color.Gray),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                AndroidView(
+//                    factory = { ctx ->
+//                        surfaceView ?: BevySurfaceView(context = ctx).also { surfaceView = it }
+//                    },
+//                    modifier = Modifier.fillMaxSize()
+//                )
+//            }
 
             Column(
                 modifier = Modifier
@@ -138,25 +141,57 @@ fun EditScreen(
                 // Position X
                 PositionControl(
                     label = "Position X",
-                    value = appState.offsetX,
-                    onValueChange = { onUpdateAppState(appState.copy(offsetX = it)) },
-                    range = -100f..100f
+                    value = appState.scene.objects[selectedMesh].pos[0],
+                    onValueChange = { v ->
+                        val objectdd = appState.scene.objects[selectedMesh]
+                        val pos = objectdd.pos
+                        val nobj = objectdd.copy(pos = listOf(v, pos[1], pos[2]))
+                        val nobjs = appState.scene.objects.mapIndexed {  i, v -> if (i == selectedMesh) nobj else v  }
+                        onUpdateAppState(appState.copy(scene = appState.scene.copy(objects = nobjs)))
+                                    },
+                    range = -5f..5f
                 )
 
                 // Position Y
                 PositionControl(
                     label = "Position Y",
-                    value = appState.offsetY,
-                    onValueChange = { onUpdateAppState(appState.copy(offsetY = it)) },
-                    range = -100f..100f
+                    value = appState.scene.objects[selectedMesh].pos[1],
+                    onValueChange = { v ->
+                        val objectdd = appState.scene.objects[selectedMesh]
+                        val pos = objectdd.pos
+                        val nobj = objectdd.copy(pos = listOf(pos[0], v, pos[2]))
+                        val nobjs = appState.scene.objects.mapIndexed {  i, v -> if (i == selectedMesh) nobj else v  }
+                        onUpdateAppState(appState.copy(scene = appState.scene.copy(objects = nobjs)))
+                    },
+                    range = -5f..5f
                 )
 
                 // Position Z
                 PositionControl(
                     label = "Position Z",
-                    value = appState.offsetZ,
-                    onValueChange = { onUpdateAppState(appState.copy(offsetZ = it))},
-                    range = -100f..100f
+                    value = appState.scene.objects[selectedMesh].pos[2],
+                    onValueChange = { v ->
+                        val objectdd = appState.scene.objects[selectedMesh]
+                        val pos = objectdd.pos
+                        val nobj = objectdd.copy(pos = listOf(pos[0], pos[1], v))
+                        val nobjs = appState.scene.objects.mapIndexed {  i, v -> if (i == selectedMesh) nobj else v  }
+                        onUpdateAppState(appState.copy(scene = appState.scene.copy(objects = nobjs)))
+                    },
+                    range = -5f..5f
+                )
+
+
+                PositionControl(
+                    label = "Scale",
+                    value = appState.scene.objects[selectedMesh].scale,
+                    onValueChange = { v ->
+                        val objectdd = appState.scene.objects[selectedMesh]
+                        val pos = objectdd.pos
+                        val nobj = objectdd.copy(scale = v)
+                        val nobjs = appState.scene.objects.mapIndexed {  i, v -> if (i == selectedMesh) nobj else v  }
+                        onUpdateAppState(appState.copy(scene = appState.scene.copy(objects = nobjs)))
+                    },
+                    range = 0.1f..10f
                 )
             }
         }
