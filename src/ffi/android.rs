@@ -123,6 +123,14 @@ pub fn device_exit_touch(_env: *mut JNIEnv, _: jobject, obj: jlong) {
     crate::change_last_touch(app, None);
 }
 
+
+#[unsafe(no_mangle)]
+#[jni_fn("name.renderer.bevy.RustBridge")]
+pub fn import_mesh(_env: *mut JNIEnv, _: jobject, obj: jlong, filepath: jstring) {
+    let app = unsafe { &mut *(obj as *mut App) };
+    
+}
+
 #[unsafe(no_mangle)]
 #[jni_fn("name.renderer.bevy.RustBridge")]
 pub fn release_bevy_app(_env: *mut JNIEnv, _: jobject, obj: jlong) {

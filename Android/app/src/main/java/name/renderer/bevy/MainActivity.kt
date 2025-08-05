@@ -2,6 +2,7 @@ package name.renderer.bevy
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -207,6 +208,7 @@ fun SurfaceCard(
             uri?.let {
                 // User has selected a file.
                 // TODO: Pass this URI to your Rust bridge to handle the file.
+                Log.i("import file", uri.toString())
             }
         }
     )

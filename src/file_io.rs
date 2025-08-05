@@ -5,7 +5,7 @@ use std::path::Path;
 use glam::{Vec2, Vec3};
 use tobj::{self, LoadOptions};
 
-fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
+pub fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
     let file = File::create(path)?;
     let mut writer = BufWriter::new(file);
 
@@ -41,7 +41,7 @@ fn export_obj(mesh: &Mesh, path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn load_obj(path: &Path) -> Result<Mesh, String> {
+pub fn load_obj(path: &Path) -> Result<Mesh, String> {
     let (models, _) = tobj::load_obj(
         path,
         &LoadOptions {
