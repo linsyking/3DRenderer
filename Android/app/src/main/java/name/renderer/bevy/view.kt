@@ -160,7 +160,7 @@ fun ViewScreen(
                             RustBridge.update_camera_offset(surfaceView.bevy_app, newcp[0], newcp[1], newcp[2])
                         }
                     },
-                    range = -5f..5f
+                    range = -10f..10f
                 )
 
                 PositionControl(
@@ -174,7 +174,7 @@ fun ViewScreen(
                             RustBridge.update_camera_offset(surfaceView.bevy_app, newcp[0], newcp[1], newcp[2])
                         }
                     },
-                    range = -5f..5f
+                    range = -10f..10f
                 )
 
                 PositionControl(
@@ -188,7 +188,7 @@ fun ViewScreen(
                             RustBridge.update_camera_offset(surfaceView.bevy_app, newcp[0], newcp[1], newcp[2])
                         }
                     },
-                    range = -5f..5f
+                    range = -10f..10f
                 )
             }
         }
@@ -203,6 +203,7 @@ private fun PositionControl(
     range: ClosedFloatingPointRange<Float>
 ) {
     var textValue by remember { mutableStateOf(value.toString()) }
+    var tempValue by remember { mutableStateOf(value) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ToolboxScreen(
     onBack: () -> Unit,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
     onEditClick: () -> Unit,
     onTextClick: () -> Unit,
 //    onTransformClick: () -> Unit,
@@ -83,8 +85,8 @@ fun ToolboxScreen(
                 ToolboxRow(
                     items = listOf(
                         // All icons are now the specific drawable resources
-                        ToolboxItem("undo", R.drawable.undo, onClick = { onBack}),
-                        ToolboxItem("redo", R.drawable.redo, onClick = { onBack }),
+                        ToolboxItem("undo", R.drawable.undo, onClick = onUndo),
+                        ToolboxItem("redo", R.drawable.redo, onClick = onRedo),
                         ToolboxItem("view", R.drawable.view, onClick = onViewClick),
                         ToolboxItem("edit", R.drawable.edit, onClick = onEditClick),
                     )
@@ -95,7 +97,7 @@ fun ToolboxScreen(
                     items = listOf(
                         // All icons are now the specific drawable resources
                         ToolboxItem("text", R.drawable.text, onClick = onTextClick),
-                        ToolboxItem("light", R.drawable.light, onClick = { onBack }),
+                        ToolboxItem("light", R.drawable.light, onClick = onBack ),
                         ToolboxItem("Cube", R.drawable.cube, onClick=onCubeClick),
                         ToolboxItem("Sphere", R.drawable.sphere,onClick=onSphereClick),
 //                        ToolboxItem("transform", R.drawable.transform, onClick = onTransformClick),

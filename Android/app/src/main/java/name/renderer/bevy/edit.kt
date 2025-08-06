@@ -31,7 +31,7 @@ fun EditScreen(
 
     if (showColorDialog) {
         ColorPickerDialog(
-            currentColor = appState.meshColor,
+            currentColor = listToColor(appState.scene.objects[selectedMesh].color),
             onDismiss = { showColorDialog = false },
             onColorSelected = { mcolor ->
                 onUpdateAppState(appState.copy(meshColor = mcolor))
@@ -133,7 +133,7 @@ fun EditScreen(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(appState.meshColor)
+                            .background(listToColor(appState.scene.objects[selectedMesh].color))
                             .clickable { showColorDialog = true }
                     )
                 }
@@ -193,6 +193,29 @@ fun EditScreen(
                     },
                     range = 0.1f..10f
                 )
+
+
+                Button(
+                    onClick = {
+                        if (appState.scene.objects.isNotEmpty()) {
+                            val updatedObjects = appState.scene.objects.toMutableList().also {
+                                it.removeAt(selectedMesh)
+                            }
+                            val newSelected = selectedMesh.coerceAtMost(updatedObjects.lastIndex.coerceAtLeast(0))
+                            onUpdateAppState(
+                                appState.copy(
+                                    scene = appState.scene.copy(objects = updatedObjects),
+                                    meshColor = if (updatedObjects.isNotEmpty()) listToColor(updatedObjects[newSelected].color) else appState.meshColor
+                                )
+                            )
+                            selectedMesh = newSelected
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Delete Mesh", color = Color.White)
+                }
             }
         }
     }
@@ -205,8 +228,8 @@ private fun PositionControl(
     onValueChange: (Float) -> Unit,
     range: ClosedFloatingPointRange<Float>
 ) {
-    var textValue by remember { mutableStateOf(value.toString()) }
-
+//    var textValue by remember { mutableStateOf(value.toString()) }
+    var tempValue by remember { mutableStateOf(value) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
@@ -214,9 +237,9 @@ private fun PositionControl(
         Text(label, modifier = Modifier.weight(1f))
 
         OutlinedTextField(
-            value = textValue,
+            value = value.toString(),
             onValueChange = {
-                textValue = it
+//                textValue = it
                 it.toFloatOrNull()?.let { floatValue ->
                     if (floatValue in range) {
                         onValueChange(floatValue)
@@ -228,11 +251,11 @@ private fun PositionControl(
         )
 
         Slider(
-            value = value,
+            value = tempValue,
             onValueChange = {
-                onValueChange(it)
-                textValue = it.toString()
+                tempValue = it
             },
+            onValueChangeFinished = { onValueChange(tempValue) },
             modifier = Modifier.weight(2f),
             valueRange = range
         )

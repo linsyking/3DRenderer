@@ -111,6 +111,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Should be read-only
 var globalAppState : AppState ? = null
 
 @Composable
@@ -118,6 +119,8 @@ fun MyApp() {
     val navController = rememberNavController()
     // Top-level state, passed down to child Composables via callbacks
     var appState by remember { mutableStateOf(AppState()) }
+    var history by remember { mutableStateOf(listOf(AppState())) }
+    var currentIndex  by remember { mutableIntStateOf(0) }
     globalAppState = appState
 
     NavHost(
@@ -131,19 +134,39 @@ fun MyApp() {
             SurfaceCard(
                 navController = navController,
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState }
+                onUpdateAppState = {newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                     currentIndex = trimmedHistory.size
+                       appState = newState }
             )
         }
         composable("settings") {
             SettingsScreen(
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
+                onUpdateAppState = { newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState },
                 onBack = { navController.popBackStack() }
             )
         }
         composable("toolbox") {
             ToolboxScreen(
                 onBack = { navController.navigateUp() },
+                onUndo = {
+                    if (currentIndex > 0) {
+                        currentIndex -= 1
+                        appState = history[currentIndex]
+                    }
+                    navController.navigateUp()  },
+                onRedo = {
+                    if (currentIndex < history.lastIndex) {
+                        currentIndex += 1
+                        appState = history[currentIndex]
+                    }
+                    navController.navigateUp()  },
                 onEditClick = { navController.navigate("edit") },
                 onTextClick = { navController.navigate("text") },
 //                onTransformClick = { navController.navigate("transform") },
@@ -159,6 +182,9 @@ fun MyApp() {
                         scale = 1f
                     )
                     appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + appState
+                    currentIndex = trimmedHistory.size
                     navController.navigateUp() },
                 onCubeClick = {
 
@@ -172,6 +198,9 @@ fun MyApp() {
                         scale = 1f
                     )
                     appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + appState
+                    currentIndex = trimmedHistory.size
                     navController.navigateUp()  },
                 onPlaneClick={
 
@@ -185,39 +214,60 @@ fun MyApp() {
                         scale = 1f
                     )
                     appState = appState.copy(scene = appState.scene.copy(objects = nobjs))
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + appState
+                    currentIndex = trimmedHistory.size
                     navController.navigateUp() },
 //                onShapeClick={navController.navigate("shape")},
 //                onPolylineClick={navController.navigate("polyline")},
                 onCurveClick={navController.navigate("curve")},
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState }
+                onUpdateAppState = { newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState }
             )
         }
         composable("edit") {
             EditScreen(
                 onBack = { navController.navigateUp() },
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState }
+                onUpdateAppState = { newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState}
             )
         }
         composable("text") {
             TextScreen(
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
+                onUpdateAppState = {newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState },
                 onBack = { navController.navigateUp() }
             )
         }
         composable("transform") {
             TransformScreen(
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
+                onUpdateAppState = { newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState },
                 onBack = { navController.navigateUp() }
             )
         }
         composable("view") {
             ViewScreen(
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
+                onUpdateAppState = { newState ->
+                    appState = newState
+                                   },
                 onBack = { navController.navigateUp() }
             )
         }
@@ -245,7 +295,11 @@ fun MyApp() {
         composable("curve") {
              CurveScreen(
                 appState = appState,
-                onUpdateAppState = { newState -> appState = newState },
+                onUpdateAppState = { newState ->
+                    val trimmedHistory = history.subList(0, currentIndex + 1)
+                    history = trimmedHistory + newState
+                    currentIndex = trimmedHistory.size
+                    appState = newState },
                 onBack = { navController.navigateUp() }
             )
         }

@@ -135,7 +135,6 @@ fn setup(
             meshconfig.transform.clone(),
         ));
     }
-
 }
 
 fn move_camera(
@@ -211,17 +210,19 @@ fn move_camera(
                         std::f32::consts::FRAC_PI_2 - 0.01,
                     );
 
+                    let center = Vec3::new(
+                        config.camera_pos[0],
+                        config.camera_pos[1],
+                        config.camera_pos[2],
+                    );
                     // Convert spherical coordinates to cartesian
-                    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin()
-                        + config.camera_pos[0];
-                    let y = orbit.radius * orbit.elevation.sin() + config.camera_pos[1];
-                    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos()
-                        + config.camera_pos[2];
+                    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin();
+                    let y = orbit.radius * orbit.elevation.sin();
+                    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos();
 
-                    let position = Vec3::new(x, y, z);
-                    let target = Vec3::ZERO;
+                    let position = center + Vec3::new(x, y, z);
                     transform.translation = position;
-                    transform.look_at(target, Vec3::Y);
+                    transform.look_at(center, Vec3::Y);
                 }
             }
             // Update last touch input

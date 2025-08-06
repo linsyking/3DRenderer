@@ -155,10 +155,15 @@ pub fn create_breakout_app(
 }
 
 pub(crate) fn update_camera(app: &mut App, pos: Vec3) {
+    let center = Vec3::new(pos[0], pos[1], pos[2]);
+
+    let mut config = app.world_mut().resource_mut::<scene3d::MyPluginConfig>();
+    config.camera_pos = vec![center.x, center.y, center.z];
+
     let orbit = app.world().resource::<OrbitCamera>();
-    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin() + pos[0];
-    let y = orbit.radius * orbit.elevation.sin() + pos[1];
-    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos() + pos[2];
+    let x = orbit.radius * orbit.elevation.cos() * orbit.azimuth.sin();
+    let y = orbit.radius * orbit.elevation.sin();
+    let z = orbit.radius * orbit.elevation.cos() * orbit.azimuth.cos();
 
     let mut camq = app
         .world_mut()
@@ -167,10 +172,9 @@ pub(crate) fn update_camera(app: &mut App, pos: Vec3) {
         log::info!("Camera position: {:?}", transform.translation);
 
         // Convert spherical coordinates to cartesian
-        let position = Vec3::new(x, y, z);
-        let target = Vec3::ZERO;
+        let position = Vec3::new(x, y, z) + center;
         transform.translation = position;
-        transform.look_at(target, Vec3::Y);
+        transform.look_at(center, Vec3::Y);
     }
 }
 
