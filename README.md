@@ -65,6 +65,7 @@ The project directly uses the following open-source libraries:
 - [**Jetpack Compose**](https://developer.android.com/jetpack/compose)\
   For modern, declarative UI development.
 - wgpu
+- tinyobj
 - bevy
 
 ### Notes
@@ -103,7 +104,7 @@ Our application features a custom rendering engine designed to convert user sket
    - Settings like lighting, material type (Phong, Lambertian, etc.), and wireframe/solid mode are defined by the user. These are passed as uniforms and flags to the rendering pipeline (e.g., WebGL shader programs or Three.js renderer configuration).
 
 6. **Canvas**  
-   - The render output is drawn to a WebGL canvas or GPU-accelerated framebuffer. A render loop updates the view in real-time using `requestAnimationFrame`, applying the current camera transform, mesh geometry, and lighting model.
+   - The render output is drawn to a GPU-accelerated framebuffer using wgpu. The rendering backend is VULKAN by default.
 
 ## APIs and Controller
 
@@ -161,14 +162,6 @@ Our application features a custom rendering engine designed to convert user sket
 | `exportAnimationSequence()` | Output animation sequence if applicable  | `outputPath` or `format`       | Success/Failure |
 | `exportRenderConfig()`      | Save current rendering setup             | `outputPath`                   | Success/Failure |
 
-### Integration with Third-Party SDKs
-
-| SDK               | Purpose                                            | Interaction Method                                  |
-| ----------------- | -------------------------------------------------- | --------------------------------------------------- |
-| **WebGPU**        | Cross-platform GPU rendering backend               | Direct calls from engine; abstracted from front-end |
-| **Tinyobjloader** | Efficient OBJ mesh parsing                         | Invoked during `importMesh()`                       |
-| **2D Style Libs** | Optional stylization, non-photorealistic rendering | Applied during rendering based on config            |
-
 ### Future Considerations
 
 * API Versioning for long-term compatibility
@@ -187,12 +180,26 @@ Our application features a custom rendering engine designed to convert user sket
 
 ---
 
-## View UI/UX
+## Team Member
 
----
+### Yuqi Meng
 
-## Team Roster
-- Yuqi Meng
-- Yiming Xiang
-- Yufan Wang
-- Yinong He
+Contribution: Wrote the `geometry.rs` and `file_io.rs` which exports `meshify` function that could transform a list of points to a tube mesh. The initial export/import function does not support reading Android filesystem files. He designed the `Mesh` structure for internal use.
+
+### Yiming Xiang
+
+Contribution: Bulit the initial codebase for the project using wgpu and bevy and designed the code architecture. In Kotlin, he wrote the home scene UI (surface view, menu and setting buttons) and connected other UI pages written by Yinong to Rust using RustBridge. He wrote most of the logic of UI. In Rust, he implemented most of the features besides what Yuqi did, including communication with Kotlin, rendering meshes, camera control etc. For the sketch feature, he designed using a ray tracing method to transform viewport touch to world coordinates.
+
+### Yufan Wang
+
+Contribution: Readme, add "APIs and Controller" section.
+
+### Yinong He
+
+Contribution: He wrote the UI in Kotlin. The settings page, toolbox page, edit page. He designed the pages, writing UI components including sliders, buttons, color picker, file picker etc. He wrote the text 2D overlay feature in UI.
+
+## Challenges
+
+During development, a major technical challenge was transforming the user's touch gestures into 3D mesh data. Initially, we implemented a `meshify` function that converts a list of 3D points into a tube-like mesh. However, user touch inputs are given in 2D screen coordinates and cannot be directly used as 3D points. The core challenge, therefore, was mapping these 2D coordinates into 3D world space.
+
+To solve this, we employed a ray casting approach. When the user touches the screen, we compute a ray emitted from the camera through the touch position. We then calculate the intersection of this ray with a virtual plane placed in front of the camera. The intersection point gives us the corresponding 3D world coordinate. This method effectively bridges the gap between 2D input and 3D geometry, allowing us to resolve the challenge.
